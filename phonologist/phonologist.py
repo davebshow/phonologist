@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import codecs
-from utils import *
+from fmatrixutils import *
 from constants import  ( IPA_SYMBOLS, STRESS, COMMA, PERIOD, SYLLABLE )
 
 #### Object oriented library for working with IPA transcriptions. ####
