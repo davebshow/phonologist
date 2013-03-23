@@ -4,9 +4,9 @@
 __author__ = "David Michael Brown"
 __status__ = "Development"
 
-STRESS = "ˈ" 
+STRESS = u'\u02c8' 
+PERIOD = u'\u2016'
 COMMA = "|"
-PERIOD = "‖"
 SYLLABLE = "."
 
 IPA_SYMBOLS = ["t","d","s","z","ɬ","ɮ","θ","ð","ʃ","ʒ","c","ɟ","ç","ʝ","p","b","f","v",

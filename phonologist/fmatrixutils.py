@@ -65,9 +65,8 @@ def find_plus( phon_trans, posfeatures ):
 		feature = posfeatures[ndx]
 		n_data = _find_pos( feature, data, fmatrix, sym_dict )
 		data = n_data
-		print data
 		ndx -= 1
-	output = set(data)
+	output = set( data )
 	return output
 
 def find_minus( phon_trans, negfeatures ):
@@ -82,7 +81,7 @@ def find_minus( phon_trans, negfeatures ):
 		data = n_data
 		
 		ndx -= 1
-	output = set(data)
+	output = set( data )
 	return output
 
 def _red_find_minus( data, negfeatures ):
@@ -105,7 +104,7 @@ def _find_pos( feature, data, fmatrix, sym_dict ):
 	f_list = fmatrix[ feature ]
 	found = []
 	for symbol in data:
-		if symbol.encode('utf-8') not in [ COMMA,PERIOD,STRESS,SYLLABLE ]:
+		if symbol not in [ COMMA,PERIOD,STRESS,SYLLABLE ]:
 			ndx = sym_dict[ symbol.encode('utf-8') ]
 			val = f_list[ ndx ]
 			if val == "+":
@@ -120,7 +119,7 @@ def _find_neg( feature, data, fmatrix, sym_dict ):
 	f_list = fmatrix[ feature ]
 	found = []
 	for symbol in data:
-		if symbol.encode('utf-8') not in [ COMMA,PERIOD,STRESS,SYLLABLE ]:
+		if symbol not in [ COMMA,PERIOD,STRESS,SYLLABLE ]:
 			ndx = sym_dict[ symbol.encode('utf-8') ]
 			val = f_list[ ndx ]
 			if val == "-":
