@@ -17,9 +17,7 @@ def write_fmatrix():
 		for ind in row[ 1: ]:
 			temp_list.append( ind )
 		feature_dict[feature] = temp_list
-
 	feature_matrix = json.dumps( feature_dict )
-
 	f.close()
 	json_file = open( "fmatrix.json", "w" )
 	json.dump( feature_matrix, json_file )
@@ -29,7 +27,6 @@ def build_fmatrix():
 	feature_matrix = json.load(f)
 	f.close()
 	return json.loads(feature_matrix)
-
 
 def get_features(ipa_symbol):
 	sym_dict = ipa_dict()
@@ -41,7 +38,6 @@ def get_features(ipa_symbol):
 		fdict[ feature ] = val
 	output = { ipa_symbol : fdict }
 	### more print magic here
-	print ipa_symbol
 	return output
 
 def features( phon_trans, posfeatures=None, negfeatures=None ):
@@ -53,7 +49,6 @@ def features( phon_trans, posfeatures=None, negfeatures=None ):
 			return find_plus( phon_trans, posfeatures )
 	else:
 		return find_minus( phon_trans, negfeatures )
-
 
 def find_plus( phon_trans, posfeatures ):
 	assert type(posfeatures) == list, "posfeatures must be passed as list [ ] "
@@ -94,11 +89,9 @@ def _red_find_minus( data, negfeatures ):
 		feature = negfeatures[ndx]
 		n_data = _find_neg( feature, data, fmatrix, sym_dict )
 		data = n_data
-		
 		ndx -= 1
 	output = set(data)
 	return output
-
 
 def _find_pos( feature, data, fmatrix, sym_dict ):
 	f_list = fmatrix[ feature ]
@@ -115,7 +108,6 @@ def _find_neg( feature, data, fmatrix, sym_dict ):
 	COMMA = "|"
 	PERIOD = "‖"
 	STRESS = "ˈ"
-	
 	f_list = fmatrix[ feature ]
 	found = []
 	for symbol in data:

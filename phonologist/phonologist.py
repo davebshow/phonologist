@@ -37,6 +37,7 @@ class Phonologist( object ):
 
 #################################################################
 # Symbol level methods
+#################################################################
 
 	# Count the incidence of any number of taret symbols passed as arguments.
 	# Returns a dictionary with { targets as keys : incidence as value}
@@ -49,8 +50,6 @@ class Phonologist( object ):
 				count_dict.setdefault(symbol,0)
 				count_dict[symbol] += 1
 		return count_dict
-
-	# Get phon environs
 
 	def preceding_symbol( self, *targets  ):
 		count_dict = {}

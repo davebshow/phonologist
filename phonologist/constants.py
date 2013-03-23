@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-
 __author__ = "David Michael Brown"
 __status__ = "Development"
 
