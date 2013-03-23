@@ -2,7 +2,7 @@
 
 import codecs
 from fmatrixutils import *
-from constants import  ( IPA_SYMBOLS, STRESS, COMMA, PERIOD, SYLLABLE )
+from constants import   IPA_SYMBOLS, STRESS 
 
 #### Object oriented library for working with IPA transcriptions. ####
 
