@@ -81,7 +81,6 @@ def find_minus( phon_trans, negfeatures ):
 
 def _red_find_minus( data, negfeatures ):
 	data = list(data)
-
 	fmatrix = build_fmatrix()
 	sym_dict = ipa_dict()
 	ndx = len(negfeatures) - 1
@@ -105,9 +104,6 @@ def _find_pos( feature, data, fmatrix, sym_dict ):
 	return found
 
 def _find_neg( feature, data, fmatrix, sym_dict ):
-	COMMA = "|"
-	PERIOD = "‖"
-	STRESS = "ˈ"
 	f_list = fmatrix[ feature ]
 	found = []
 	for symbol in data:
