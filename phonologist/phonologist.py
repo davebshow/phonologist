@@ -161,7 +161,31 @@ class Phonologist( object ):
 		return 
 	def coronal_obstruents( self ):
 		return 
-		
+
+#### Class for individual token. ####
+#### Not yet used. ####
+class Token( object ):
+	def __init__( self, token ):
+		self.token = token
+ 
+	def __iter__( self ):
+		return TokenIterator( self.token )
+ 
+	def __len__( self ):
+		return len(self.token)
+
+	def __iter__( self ):
+		return TokenIterator( self.tokens )
+
+	def __getitem__( self, ndx ):
+		assert ndx >= 0 and ndx < len( self.token ), "index out of range"
+		return self.token[ ndx ]
+
+	def __setitem__( self, ndx, sym ):
+		assert ndx >= 0 and ndx < len( self.token ), "index out of range"
+		self.token[ ndx ] = sym
+ 
+ 
 #### Iterator class. ####
 class TokenIterator( object ):
 	def __init__( self, phon_trans  ):
