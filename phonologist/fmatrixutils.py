@@ -44,7 +44,7 @@ def get_features(ipa_symbol):
 	print ipa_symbol
 	return output
 
-def find_features( phon_trans, posfeatures=None, negfeatures=None ):
+def features( phon_trans, posfeatures=None, negfeatures=None ):
 	if posfeatures:
 		if negfeatures:
 			data = find_plus( phon_trans, posfeatures )
