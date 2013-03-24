@@ -2,7 +2,7 @@
 
 import codecs
 from fmatrixutils import *
-from constants import   IPA_SYMBOLS, STRESS 
+from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA, SYLLABLE
 
 #### Object oriented library for working with IPA transcriptions. ####
 
@@ -71,6 +71,88 @@ class Phonologist( object ):
 			ndx += 1
 		return count_dict	
 
+	def return_tokens( self, target ):
+		count_dict = {}
+		for token in self.tokens:
+			for sym in token:
+				if sym.encode('utf-8') in target:
+					count_dict.setdefault( token, 0 )
+					count_dict[token] += 1
+		return count_dict
+
+	def stressed_target( self, target ):
+		### faster if I don't call return tokens
+		tokens = self.return_tokens( target )
+		count_dict = {}
+		for token in tokens:
+			if STRESS in token:
+				count_dict.setdefault(token,0)
+				count_dict[ token ] += 1
+		return count_dict
+
+	def unstressed_target( self, target ):
+		### faster if I don't call return tokens
+		tokens = self.return_tokens( target )
+		count_dict = {}
+		for token in tokens:
+			if STRESS not in token:
+				count_dict.setdefault(token,0)
+				count_dict[ token ] += 1
+		return count_dict
+
+	def pretonic_postonic_words( self, target ):
+		count_dict = {"pretonic":0,"postonic":0}
+		for token in self.tokens:
+			for sym in token:
+				if sym.encode('utf-8') in target:
+					print token
+					token_dict = self._pretonic_postonic(target,token)
+					print token_dict
+					count_dict["pretonic"] += token_dict["pretonic"]
+					count_dict["postonic"] += token_dict["postonic"]
+					break
+
+		return count_dict
+
+	def _pretonic_postonic( self, target, token ):
+		### Don't like all of this trying
+		count_dict = {"pretonic":0,"postonic":0}
+		stoken = token.split(".")
+		print stoken
+		if len(stoken) > 1:
+			for ndx, syll in enumerate( stoken ):
+				if not self.stressed(syll):
+					for sym in syll:
+						if sym in target:
+							try:
+								if STRESS in stoken[ndx-1]:
+									count_dict["postonic"] += 1
+							except IndexError:
+								pass
+							try:
+								if STRESS in stoken[ndx+1]:
+									count_dict["pretonic"] += 1
+							except IndexError:
+								pass
+			return count_dict
+		else:
+			return count_dict
+
+	def stressed( self, token ):
+		if STRESS in token:
+			return True
+		else:
+			return False
+
+
+
+
+
+
+
+
+
+
 #########################################################################
 # Token level methods #
 #########################################################################
@@ -136,6 +218,7 @@ class Phonologist( object ):
 		for token in self.tokens:
 			syllables.append(token.split("."))
 		self.tokens = sum(syllables,[]) # hehe good trick
+		return self
 
 ##############################################################
 ##############################################################
@@ -184,6 +267,12 @@ class Token( object ):
 	def __setitem__( self, ndx, sym ):
 		assert ndx >= 0 and ndx < len( self.token ), "index out of range"
 		self.token[ ndx ] = sym
+
+	def stressed( self ):
+		if STRESS in self.token:
+			return True
+		else:
+			return False
  
  
 #### Iterator class. ####
@@ -202,6 +291,36 @@ class TokenIterator( object ):
 			return token
 		else:
 			raise StopIteration
+
+
+class UnicodeWriter:
+    """
+    A CSV writer which will write rows to CSV file "f",
+    which is encoded in the given encoding.
+    """
+
+    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+        # Redirect output to a queue
+        self.queue = cStringIO.StringIO()
+        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+        self.stream = f
+        self.encoder = codecs.getincrementalencoder(encoding)()
+
+    def writerow(self, row):
+        self.writer.writerow([s.encode("utf-8") for s in row])
+        # Fetch UTF-8 output from the queue ...
+        data = self.queue.getvalue()
+        data = data.decode("utf-8")
+        # ... and reencode it into the target encoding
+        data = self.encoder.encode(data)
+        # write to the target stream
+        self.stream.write(data)
+        # empty queue
+        self.queue.truncate(0)
+
+    def writerows(self, rows):
+        for row in rows:
+            self.writerow(row)
 
 
 
