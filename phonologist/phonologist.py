@@ -36,12 +36,14 @@ class Phonologist( object ):
 		self.tokens[ ndx ] = token
 
 #################################################################
-# Symbol level methods
+# Symbol level methods 
+
 #################################################################
 
 	# Count the incidence of any number of taret symbols passed as arguments.
-	# Returns a dictionary with { targets as keys : incidence as value}
+	# Returns a dictionary with { target as keys : incidence as value}
 
+	# UNI
 	def target_symbols( self, *ipa_symbols):
 		count_dict = {}
 		data = ''.join(self.tokens)
@@ -51,106 +53,19 @@ class Phonologist( object ):
 				count_dict[symbol] += 1
 		return count_dict
 
-	def preceding_symbol( self, *targets  ):
-		count_dict = {}
-		data = ''.join( self.tokens )
-		for ndx,symbol in enumerate( data[ 1:] ):
-			if symbol.encode('utf-8') in targets:
-				count_dict.setdefault( data[ ndx ],0 )
-				count_dict[data[ ndx ]] += 1
-		return count_dict
-
-	def posterior_symbol( self, *targets ):
-		count_dict = {}
-		data = ''.join( self.tokens )
-		ndx = 0
-		for i in range( len( data ) - 1):
-			if data[ndx].encode( 'utf-8' ) in targets:
-				count_dict.setdefault( data[ ndx + 1 ],0 )
-				count_dict[data[ ndx + 1 ]] += 1
-			ndx += 1
-		return count_dict	
-
-	def return_tokens( self, target ):
-		count_dict = {}
-		for token in self.tokens:
-			for sym in token:
-				if sym.encode('utf-8') in target:
-					count_dict.setdefault( token, 0 )
-					count_dict[token] += 1
-		return count_dict
-
-	def stressed_target( self, target ):
-		### faster if I don't call return tokens
-		tokens = self.return_tokens( target )
-		count_dict = {}
-		for token in tokens:
-			if STRESS in token:
-				count_dict.setdefault(token,0)
-				count_dict[ token ] += 1
-		return count_dict
-
-	def unstressed_target( self, target ):
-		### faster if I don't call return tokens
-		tokens = self.return_tokens( target )
-		count_dict = {}
-		for token in tokens:
-			if STRESS not in token:
-				count_dict.setdefault(token,0)
-				count_dict[ token ] += 1
-		return count_dict
-
-	def pretonic_postonic_words( self, target ):
-		count_dict = {"pretonic":0,"postonic":0}
-		for token in self.tokens:
-			for sym in token:
-				if sym.encode('utf-8') in target:
-					print token
-					token_dict = self._pretonic_postonic(target,token)
-					print token_dict
-					count_dict["pretonic"] += token_dict["pretonic"]
-					count_dict["postonic"] += token_dict["postonic"]
-					break
-
-		return count_dict
-
-	def _pretonic_postonic( self, target, token ):
-		### Don't like all of this trying
-		count_dict = {"pretonic":0,"postonic":0}
-		stoken = token.split(".")
-		print stoken
-		if len(stoken) > 1:
-			for ndx, syll in enumerate( stoken ):
-				if not self._stressed(syll):
-					for sym in syll:
-						if sym in target:
-							try:
-								if STRESS in stoken[ndx-1]:
-									count_dict["postonic"] += 1
-							except IndexError:
-								pass
-							try:
-								if STRESS in stoken[ndx+1]:
-									count_dict["pretonic"] += 1
-							except IndexError:
-								pass
-			return count_dict
-		else:
-			return count_dict
-
+	# GEN
 	def _stressed( self, token ):
 		if STRESS in token:
 			return True
 		else:
 			return False
 
-
 #########################################################################
-# Token level methods #
+# Token level methods # # GEN
 #########################################################################
 
 	# Count the incidence of any number of the target tokens passed as arguments.
-	# Returns a dictionary with { targets as keys : incidence as value}
+	# Returns a dictionary with { target as keys : incidence as value}
 	def target_tokens( self, *target_tokens ):
 		count_dict = {}
 		for token in self.tokens:
@@ -159,20 +74,20 @@ class Phonologist( object ):
 				count_dict[token] += 1
 		return count_dict
 
-	def preceding_tokens( self, *targets ):
+	def preceding_tokens( self, target ):
 		count_dict = {}
 		for ndx, token in enumerate(self.tokens[ 1: ]):
-			if token.encode( 'utf-8' ) in targets:
+			if token.encode( 'utf-8' ) in target:
 				print token 
 				count_dict.setdefault( self.tokens[ ndx ], 0 )
 				count_dict[ self.tokens[ ndx ] ] += 1
 		return count_dict 
 
-	def posterior_token( self, *targets ):
+	def posterior_token( self, target ):
 		count_dict = {}
 		ndx = 0
 		for i in range( len( self.tokens ) - 1 ):
-			if self.tokens[ndx].encode( 'utf-8' ) in targets:
+			if self.tokens[ndx].encode( 'utf-8' ) in target:
 				count_dict.setdefault( self.tokens[ ndx + 1], 0 )
 				count_dict[ self.tokens[ndx + 1] ] += 1
 			ndx += 1
@@ -204,13 +119,13 @@ class Phonologist( object ):
 
 	#### Methods for working with the Phrases and Words classes###
 	#### Divide the tokens based on syllable boundries ####
-
+	#GEN
 	def syllabify( self ):
 		syllables = []
 		for token in self.tokens:
 			syllables.append(token.split("."))
-		self.tokens = sum(syllables,[]) # hehe good trick
-		return self
+		return sum(syllables,[]) # hehe good trick
+		
 
 ##############################################################
 ##############################################################
@@ -237,36 +152,221 @@ class Phonologist( object ):
 	def coronal_obstruents( self ):
 		return 
 
-#### Class for individual token. ####
-#### Not yet used. ####
-class Token( object ):
-	def __init__( self, token ):
-		self.token = token
- 
-	def __iter__( self ):
-		return TokenIterator( self.token )
- 
-	def __len__( self ):
-		return len(self.token)
+class Phrases( Phonologist ):
+	def __init__( self, IPA_txtfile ):
+		self.tokens = self.load_file( IPA_txtfile )
+	def preceding_phrase(self,token):
+		pass
 
-	def __iter__( self ):
-		return TokenIterator( self.tokens )
+class Words( Phonologist ):
+	def __init__( self, IPA_txtfile ):
+		self.tokens = self.load_file( IPA_txtfile )
 
-	def __getitem__( self, ndx ):
-		assert ndx >= 0 and ndx < len( self.token ), "index out of range"
-		return self.token[ ndx ]
+	# WORD
+	def return_tokens_words( self, target ):
+		count_dict = {}
+		for token in self.tokens:
+			for sym in token:
+				if sym.encode('utf-8') in target:
+					count_dict.setdefault( token, 0 )
+					count_dict[token] += 1
+					break
 
-	def __setitem__( self, ndx, sym ):
-		assert ndx >= 0 and ndx < len( self.token ), "index out of range"
-		self.token[ ndx ] = sym
+		return count_dict
+	# WORD
+	def stressed_target_words( self, target ):
+		### faster if I don't call return tokens
+		tokens = self.return_tokens_words( target )
+		count_dict = {}
+		for token in tokens.keys():
+			if STRESS in token:
+				count_dict.setdefault(token,0)
+				count_dict[ token ] += tokens[token]
+		return count_dict
 
-	def stressed( self ):
-		if STRESS in self.token:
-			return True
+	# WORd
+	def unstressed_target_words( self, target ):
+		### faster if I don't call return tokens
+		tokens = self.return_tokens_words( target )
+		count_dict = {}
+		for token in tokens.keys():
+			if STRESS not in token:
+				count_dict.setdefault(token,0)
+				count_dict[ token ] += tokens[token]
+		return count_dict
+
+	#WORDs
+	def pretonic_postonic_words( self, target ):
+		count_dict = {"pretonic":0,"postonic":0}
+		for token in self.tokens:
+			for sym in token:
+				if sym.encode('utf-8') in target:
+					print token
+					token_dict = self._pretonic_postonic(target,token)
+					count_dict["pretonic"] += token_dict["pretonic"]
+					count_dict["postonic"] += token_dict["postonic"]
+					break
+		return count_dict
+	# WORDS
+	def _pretonic_postonic( self, target, token ):
+		### Don't like all of this trying
+		count_dict = {"pretonic":0,"postonic":0}
+		stoken = token.split(".")
+		print stoken
+		if len(stoken) > 1:
+			for ndx, syll in enumerate( stoken ):
+				if not self._stressed(syll):
+					for sym in syll:
+						if sym in target:
+							if ndx > 0:
+								if STRESS in stoken[ndx-1]:
+									count_dict["pretonic"] += 1
+							if ndx < len(stoken) - 1:
+								if STRESS in stoken[ndx+1]:
+									count_dict["postonic"] += 1			
+			return count_dict
 		else:
-			return False
- 
- 
+			return count_dict
+
+class Syllables( Phonologist ):
+
+	def __init__( self, IPA_txtfile ):
+		self.tokens = self.load_file( IPA_txtfile )
+
+	# SYL FIX FOR STRESS
+	def preceding_symbol( self, target  ):
+		count_dict = {}
+		data = ''.join( self.tokens )
+		for ndx,symbol in enumerate( data[ 1:] ):
+			if symbol.encode('utf-8') in target:
+				count_dict.setdefault( data[ ndx ],0 )
+				count_dict[data[ ndx ]] += 1
+		return count_dict
+
+	 # SYL
+	def preceding_consonant( self, target ):
+		count_dict = {}
+		data = ''.join( self.tokens )
+		for ndx,symbol in enumerate( data[ 1:] ):
+			if symbol.encode('utf-8') in target:
+				if STRESS not in data[ndx]:
+				### will remove encoding later
+					if data[ ndx ].encode('utf-8') in CONSONANTS:
+						count_dict.setdefault( data[ ndx ],0 )
+						count_dict[data[ ndx ]] += 1
+				else:
+					if data[ ndx ].encode('utf-8') in CONSONANTS:
+						count_dict.setdefault( data[ ndx - 1 ],0 )
+						count_dict[data[ ndx - 1 ]] += 1
+		return count_dict
+	# SYL
+	def preceding_vowell( self, target ):
+		count_dict = {}
+		data = ''.join( self.tokens )
+		for ndx,symbol in enumerate( data[ 1:] ):
+			if symbol.encode('utf-8') in target:
+				if STRESS not in data[ndx]:
+				### will remove encoding later
+					if data[ ndx ].encode('utf-8') in VOWELLS:
+						count_dict.setdefault( data[ ndx ],0 )
+						count_dict[data[ ndx ]] += 1
+				else:
+					if ndx > 0:
+						if data[ ndx ].encode('utf-8') in VOWELLS:
+							count_dict.setdefault( data[ ndx - 1 ],0 )
+							count_dict[data[ ndx - 1 ]] += 1
+		return count_dict
+
+	# SYL fix for stress
+	def posterior_symbol( self, target ):
+		count_dict = {}
+		data = ''.join( self.tokens )
+		ndx = 0
+		for i in range( len( data ) - 1):
+			if data[ndx].encode( 'utf-8' ) in target:
+				count_dict.setdefault( data[ ndx + 1 ],0 )
+				count_dict[data[ ndx + 1 ]] += 1
+			ndx += 1
+		return count_dict	
+
+	# SYL
+	def posterior_consonant( self, target ):
+		count_dict = {}
+		data = ''.join( self.tokens )
+		ndx = 0
+		for i in range( len( data ) - 1):
+			if data[ndx].encode( 'utf-8' ) in target:
+				### will remove encoding when 
+				if STRESS not in data[ndx+1]:
+					if data[ ndx + 1].encode('utf-8') in CONSONANTS:
+						print "cons",data[ndx + 1]
+						count_dict.setdefault( data[ ndx + 1 ],0 )
+						count_dict[data[ ndx + 1 ]] += 1
+				else:
+					if data[ndx + 2].encode('utf-8') in CONSONANTS:
+						print "cons",data[ndx + 2]
+						count_dict.setdefault( data[ ndx + 2 ],0 )
+						count_dict[data[ ndx + 2 ]] += 1						
+			ndx += 1
+		return count_dict	
+
+	#SYL
+	def posterior_vowell( self, target ):
+		count_dict = {}
+		data = ''.join( self.tokens )
+		ndx = 0
+		for i in range( len( data ) - 1):
+			if data[ndx].encode( 'utf-8' ) in target:
+				if STRESS not in data[ndx+1]:
+					if data[ ndx + 1].encode('utf-8') in VOWELLS:
+						count_dict.setdefault( data[ ndx + 1 ],0 )
+						count_dict[data[ ndx + 1 ]] += 1
+				else:
+					if data[ ndx + 2].encode('utf-8') in VOWELLS:
+						count_dict.setdefault( data[ ndx + 2 ],0 )
+						count_dict[data[ ndx + 2 ]] += 1
+			ndx += 1
+		return count_dict	
+
+	# SYL
+	def return_tokens_sylls( self, target ):
+		count_dict = {}
+		for token in self.tokens:
+			print token
+			for sym in token:
+				if sym.encode('utf-8') in target:
+					count_dict.setdefault( token, 0 )
+					count_dict[token] += 1
+		return count_dict
+
+	
+	def stressed_target_sylls( self, target ):
+		### faster if I don't call return tokens
+		tokens = self.return_tokens_sylls( target )
+		count_dict = {}
+		for token in tokens.keys():
+			if STRESS in token:
+				count_dict.setdefault(token,0)
+				count_dict[ token ] += tokens[token]
+		return count_dict
+
+    #SYL
+	def unstressed_target_sylls( self, target ):
+		### faster if I don't call return tokens
+		tokens = self.return_tokens_sylls( target )
+		count_dict = {}
+		for token in tokens.keys():
+			if STRESS not in token:
+				count_dict.setdefault(token,0)
+				count_dict[ token ] += tokens[token]
+		return count_dict
+
+class Nsyllables( Syllables ):
+
+	def __init__( self, ph_obj ):
+		syllables = ph_obj.syllabify()
+		self.tokens = syllables
+		
 #### Iterator class. ####
 class TokenIterator( object ):
 	def __init__( self, phon_trans  ):
