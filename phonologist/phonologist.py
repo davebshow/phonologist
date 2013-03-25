@@ -255,9 +255,10 @@ class Syllables( Phonologist ):
 						count_dict.setdefault( data[ ndx ],0 )
 						count_dict[data[ ndx ]] += 1
 				else:
-					if data[ ndx ].encode('utf-8') in CONSONANTS:
-						count_dict.setdefault( data[ ndx - 1 ],0 )
-						count_dict[data[ ndx - 1 ]] += 1
+					if ndx > 0:
+						if data[ ndx ].encode('utf-8') in CONSONANTS:
+							count_dict.setdefault( data[ ndx - 1 ],0 )
+							count_dict[data[ ndx - 1 ]] += 1
 		return count_dict
 	# SYL
 	def preceding_vowell( self, target ):
@@ -363,8 +364,8 @@ class Syllables( Phonologist ):
 
 class Nsyllables( Syllables ):
 
-	def __init__( self, ph_obj ):
-		syllables = ph_obj.syllabify()
+	def __init__( self, ph_inst ):
+		syllables = ph_inst.syllabify()
 		self.tokens = syllables
 		
 #### Iterator class. ####

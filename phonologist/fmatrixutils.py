@@ -3,15 +3,12 @@ import json
 import csv
 from constants import  ( IPA_SYMBOLS, STRESS, COMMA, PERIOD, SYLLABLE )
 
-
 ### build json array for 
 ### perkins: -sp -ya -nomc and for words: -nospe
 def write_fmatrix():
 	f = open( "fmatrix.csv", "rb" )
 	rows = csv.reader( f )
-	
 	feature_dict = {}
-
 	for row in rows:
 		temp_list = []
 		feature = row[ 0 ]
