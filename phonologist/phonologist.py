@@ -2,6 +2,7 @@
 
 import codecs
 from fmatrixutils import *
+from utils import force_unicode, load_file
 from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA, SYLLABLE
 
 #### Object oriented library for working with IPA transcriptions. ####
@@ -10,16 +11,14 @@ from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA,
 class Phonologist( object ):
 
 #### Create object. ####
-	def __init__( self, IPA_txtfile ):
-		self.tokens = self.load_file( IPA_txtfile )
-
-	def load_file( self, IPA_txtfile ):
-		f = codecs.open(IPA_txtfile,"r",encoding='utf-8')
-		text = f.readline()
-		tokens = text.split()
-		f.close()
-		return tokens
-
+	def __init__( self, tokens ):
+		self.tokens = tokens
+	
+	@classmethod
+	def loadfile( self, IPA_txtfile ):
+		tokens = load_file( IPA_txtfile )
+		return Phonologist(tokens)
+		
 	#### Basic methods. ####
 	def __len__( self ):
 		return len(self.tokens)
@@ -44,21 +43,17 @@ class Phonologist( object ):
 	# Returns a dictionary with { target as keys : incidence as value}
 
 	# UNI
-	def target_symbols( self, *ipa_symbols):
+	def target_symbols( self, ipa_symbol):
+		ipa_symbol = force_unicode(ipa_symbol)
 		count_dict = {}
 		data = ''.join(self.tokens)
 		for symbol in data:
-			if symbol.encode('utf-8') in ipa_symbols:
+			if symbol == ipa_symbol:
 				count_dict.setdefault(symbol,0)
 				count_dict[symbol] += 1
 		return count_dict
 
-	# GEN
-	def _stressed( self, token ):
-		if STRESS in token:
-			return True
-		else:
-			return False
+
 
 #########################################################################
 # Token level methods # # GEN
@@ -66,10 +61,11 @@ class Phonologist( object ):
 
 	# Count the incidence of any number of the target tokens passed as arguments.
 	# Returns a dictionary with { target as keys : incidence as value}
-	def target_tokens( self, *target_tokens ):
+	def target_tokens( self, target_token ):
+		target_token = force_unicode( target_token )
 		count_dict = {}
 		for token in self.tokens:
-			if token.encode('utf-8') in target_tokens:
+			if token == target_token:
 				count_dict.setdefault( token, 0 )
 				count_dict[token] += 1
 		return count_dict
@@ -125,6 +121,13 @@ class Phonologist( object ):
 		for token in self.tokens:
 			syllables.append(token.split("."))
 		return sum(syllables,[]) # hehe good trick
+
+	# GEN
+	def _stressed( self, token ):
+		if STRESS in token:
+			return True
+		else:
+			return False
 		
 
 ##############################################################
@@ -153,14 +156,25 @@ class Phonologist( object ):
 		return 
 
 class Phrases( Phonologist ):
-	def __init__( self, IPA_txtfile ):
-		self.tokens = self.load_file( IPA_txtfile )
+	def __init__( self, tokens ):
+		self.tokens = tokens
+	
+	@classmethod
+	def loadfile( self, IPA_txtfile ):
+		tokens = load_file( IPA_txtfile )
+		return Phrases(tokens)
+
 	def preceding_phrase(self,token):
 		pass
 
 class Words( Phonologist ):
-	def __init__( self, IPA_txtfile ):
-		self.tokens = self.load_file( IPA_txtfile )
+	def __init__( self, tokens ):
+		self.tokens = tokens
+	
+	@classmethod
+	def loadfile( self, IPA_txtfile ):
+		tokens = load_file( IPA_txtfile )
+		return Words(tokens)
 
 	# WORD
 	def return_tokens_words( self, target ):
@@ -171,7 +185,6 @@ class Words( Phonologist ):
 					count_dict.setdefault( token, 0 )
 					count_dict[token] += 1
 					break
-
 		return count_dict
 	# WORD
 	def stressed_target_words( self, target ):
@@ -230,8 +243,13 @@ class Words( Phonologist ):
 
 class Syllables( Phonologist ):
 
-	def __init__( self, IPA_txtfile ):
-		self.tokens = self.load_file( IPA_txtfile )
+	def __init__( self, tokens ):
+		self.tokens = tokens
+	
+	@classmethod
+	def loadfile( self, IPA_txtfile ):
+		tokens = load_file( IPA_txtfile )
+		return Syllables(tokens)
 
 	# SYL FIX FOR STRESS
 	def preceding_symbol( self, target  ):
@@ -339,7 +357,6 @@ class Syllables( Phonologist ):
 					count_dict.setdefault( token, 0 )
 					count_dict[token] += 1
 		return count_dict
-
 	
 	def stressed_target_sylls( self, target ):
 		### faster if I don't call return tokens
@@ -362,11 +379,7 @@ class Syllables( Phonologist ):
 				count_dict[ token ] += tokens[token]
 		return count_dict
 
-class Nsyllables( Syllables ):
 
-	def __init__( self, ph_inst ):
-		syllables = ph_inst.syllabify()
-		self.tokens = syllables
 		
 #### Iterator class. ####
 class TokenIterator( object ):
