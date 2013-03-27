@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 import json
 import csv
-from constants import  ( IPA_SYMBOLS, STRESS, COMMA, PERIOD, SYLLABLE )
+from constants import  ( IPA_SYMBOLS, STRESS, COMMA, PERIOD, SYLLABLE, FMATRIX )
 
 ### build json array for 
 ### perkins: -sp -ya -nomc and for words: -nospe
@@ -112,6 +112,5 @@ def ipa_dict():
 		ipa_dict[ symbol ] = ndx
 	return ipa_dict 
 
-FMATRIX = build_fmatrix()
 IPA_DICT = ipa_dict()
 

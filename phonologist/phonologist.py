@@ -3,7 +3,7 @@
 import codecs
 from fmatrixutils import *
 from utils import force_unicode, load_file
-from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA, SYLLABLE
+from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA, SYLLABLE, FMATRIX
 
 #### Object oriented library for working with IPA transcriptions. ####
 
