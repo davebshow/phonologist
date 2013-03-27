@@ -214,7 +214,6 @@ class Words( Phonologist ):
 		for token in self.tokens:
 			for sym in token:
 				if sym.encode('utf-8') in target:
-					print token
 					token_dict = self._pretonic_postonic(target,token)
 					count_dict["pretonic"] += token_dict["pretonic"]
 					count_dict["postonic"] += token_dict["postonic"]
@@ -225,18 +224,15 @@ class Words( Phonologist ):
 		### Don't like all of this trying
 		count_dict = {"pretonic":0,"postonic":0}
 		stoken = token.split(".")
-		print stoken
 		if len(stoken) > 1:
 			for ndx, syll in enumerate( stoken ):
 				if not self._stressed(syll):
 					for sym in syll:
 						if sym in target:
-							if ndx > 0:
-								if STRESS in stoken[ndx-1]:
-									count_dict["pretonic"] += 1
-							if ndx < len(stoken) - 1:
-								if STRESS in stoken[ndx+1]:
-									count_dict["postonic"] += 1			
+							if ndx > 0 and STRESS in stoken[ndx-1]:
+								count_dict["pretonic"] += 1
+							if ndx < len(stoken) - 1 and STRESS in stoken[ndx+1]:
+								count_dict["postonic"] += 1			
 			return count_dict
 		else:
 			return count_dict
