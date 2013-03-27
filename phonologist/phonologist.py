@@ -386,7 +386,7 @@ class Symbols( Phonologist ):
 		ndx = 0
 		for i in range( len( self.tokens ) - 1):
 			if self.tokens[ndx] == target:
-				if STRESS == self.tokens[ndx+1]:
+				if STRESS != self.tokens[ndx+1]:
 					if data[ ndx + 1] in VOWELLS:
 						count_dict.setdefault( data[ ndx + 1 ],0 )
 						count_dict[data[ ndx + 1 ]] += 1
