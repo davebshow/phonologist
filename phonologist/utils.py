@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import codecs
 
 def force_unicode( input ):

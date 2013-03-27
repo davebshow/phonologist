@@ -2,8 +2,8 @@
 import json
 import csv
 from constants import  ( IPA_SYMBOLS, STRESS, COMMA, PERIOD, SYLLABLE, FMATRIX )
+from utils import force_unicode
 
-### build json array for 
 ### perkins: -sp -ya -nomc and for words: -nospe
 def write_fmatrix():
 	f = open( "fmatrix.csv", "rb" )
@@ -27,6 +27,7 @@ def build_fmatrix():
 	return json.loads(feature_matrix)
 
 def get_features(ipa_symbol):
+	ipa_symbol = force_unicode(ipa_symbol)
 	ndx = IPA_DICT[ ipa_symbol ]
 	fdict = {}
 	for feature in FMATRIX:
