@@ -18,10 +18,11 @@ class Phonologist( object ):
 	def __init__( self, tokens ):
 		if type(tokens) == str:
 			utokens = tokens.decode('utf-8')
-			self.tokens = utokens.split()
-		if type(tokens) == unicode:
+			stokens = utokens.split()
+			self.tokens = stokens
+		elif type(tokens) == unicode:
 			self.tokens = tokens.split()
-		if type(tokens) == set:
+		elif type(tokens) == set:
 			self.tokens = list(tokens)
 		else:
 			self.tokens = tokens
@@ -174,9 +175,9 @@ class Words( Phonologist ):
 		if type(tokens) == str:
 			utokens = tokens.decode('utf-8')
 			self.tokens = utokens.split()
-		if type(tokens) == unicode:
+		elif type(tokens) == unicode:
 			self.tokens = tokens.split()
-		if type(tokens) == set:
+		elif type(tokens) == set:
 			self.tokens = list(tokens)
 		else:
 			self.tokens = tokens
