@@ -243,6 +243,8 @@ class Words( Phonologist ):
 class Syllables( Phonologist ):
 
 	def __init__( self, tokens ):
+		if type(tokens) != list #untested
+			tokens = tokens.syllabify()
 		self.tokens = tokens
 	
 	@classmethod
