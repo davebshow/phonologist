@@ -267,16 +267,13 @@ class Syllables( Phonologist ):
 		data = ''.join( self.tokens )
 		for ndx,symbol in enumerate( data[ 1:] ):
 			if symbol.encode('utf-8') in target:
-				if STRESS not in data[ndx]:
-				### will remove encoding later
+				if STRESS not in data[ndx] and data[ ndx ].encode('utf-8') in CONSONANTS:
+					count_dict.setdefault( data[ ndx ],0 )
+					count_dict[data[ ndx ]] += 1
+				elif ndx > 0:
 					if data[ ndx ].encode('utf-8') in CONSONANTS:
-						count_dict.setdefault( data[ ndx ],0 )
-						count_dict[data[ ndx ]] += 1
-				else:
-					if ndx > 0:
-						if data[ ndx ].encode('utf-8') in CONSONANTS:
-							count_dict.setdefault( data[ ndx - 1 ],0 )
-							count_dict[data[ ndx - 1 ]] += 1
+						count_dict.setdefault( data[ ndx - 1 ],0 )
+						count_dict[data[ ndx - 1 ]] += 1
 		return count_dict
 	# SYL
 	def preceding_vowell( self, target ):
@@ -284,16 +281,13 @@ class Syllables( Phonologist ):
 		data = ''.join( self.tokens )
 		for ndx,symbol in enumerate( data[ 1:] ):
 			if symbol.encode('utf-8') in target:
-				if STRESS not in data[ndx]:
-				### will remove encoding later
-					if data[ ndx ].encode('utf-8') in VOWELLS:
+				if STRESS not in data[ndx] and data[ ndx ].encode('utf-8') in VOWELLS:
 						count_dict.setdefault( data[ ndx ],0 )
 						count_dict[data[ ndx ]] += 1
-				else:
-					if ndx > 0:
-						if data[ ndx ].encode('utf-8') in VOWELLS:
-							count_dict.setdefault( data[ ndx - 1 ],0 )
-							count_dict[data[ ndx - 1 ]] += 1
+				elif ndx > 0:
+					if data[ ndx ].encode('utf-8') in VOWELLS:
+						count_dict.setdefault( data[ ndx - 1 ],0 )
+						count_dict[data[ ndx - 1 ]] += 1
 		return count_dict
 
 	# SYL fix for stress
@@ -321,11 +315,10 @@ class Syllables( Phonologist ):
 						print "cons",data[ndx + 1]
 						count_dict.setdefault( data[ ndx + 1 ],0 )
 						count_dict[data[ ndx + 1 ]] += 1
-				else:
-					if data[ndx + 2].encode('utf-8') in CONSONANTS:
-						print "cons",data[ndx + 2]
-						count_dict.setdefault( data[ ndx + 2 ],0 )
-						count_dict[data[ ndx + 2 ]] += 1						
+				elif data[ndx + 2].encode('utf-8') in CONSONANTS:
+					print "cons",data[ndx + 2]
+					count_dict.setdefault( data[ ndx + 2 ],0 )
+					count_dict[data[ ndx + 2 ]] += 1						
 			ndx += 1
 		return count_dict	
 
@@ -340,10 +333,9 @@ class Syllables( Phonologist ):
 					if data[ ndx + 1].encode('utf-8') in VOWELLS:
 						count_dict.setdefault( data[ ndx + 1 ],0 )
 						count_dict[data[ ndx + 1 ]] += 1
-				else:
-					if data[ ndx + 2].encode('utf-8') in VOWELLS:
-						count_dict.setdefault( data[ ndx + 2 ],0 )
-						count_dict[data[ ndx + 2 ]] += 1
+				elif data[ ndx + 2].encode('utf-8') in VOWELLS:
+					count_dict.setdefault( data[ ndx + 2 ],0 )
+					count_dict[data[ ndx + 2 ]] += 1
 			ndx += 1
 		return count_dict	
 
