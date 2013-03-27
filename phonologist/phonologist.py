@@ -16,7 +16,15 @@ class Phonologist( object ):
 		return Phonologist(tokens)
 
 	def __init__( self, tokens ):
-		self.tokens = tokens
+		if type(tokens) == str:
+			utokens = tokens.decode('utf-8')
+			self.tokens = utokens.split()
+		if type(tokens) == unicode:
+			self.tokens = tokens.split()
+		if type(tokens) == set:
+			self.tokens = list(tokens)
+		else:
+			self.tokens = tokens
 	
 	def __len__( self ):
 		return len(self.tokens)
@@ -41,7 +49,7 @@ class Phonologist( object ):
 	# Returns a dictionary with { target as keys : incidence as value}
 
 	# UNI
-	def target_symbols( self, ipa_symbol):
+	def target_symbol( self, ipa_symbol):
 		ipa_symbol = force_unicode(ipa_symbol)
 		count_dict = {}
 		data = ''.join(self.tokens)
@@ -59,7 +67,7 @@ class Phonologist( object ):
 
 	# Count the incidence of any number of the target tokens passed as arguments.
 	# Returns a dictionary with { target as keys : incidence as value}
-	def target_tokens( self, target_token ):
+	def target_token( self, target_token ):
 		target_token = force_unicode( target_token )
 		count_dict = {}
 		for token in self.tokens:
@@ -68,7 +76,7 @@ class Phonologist( object ):
 				count_dict[token] += 1
 		return count_dict
 
-	def preceding_tokens( self, target ):
+	def preceding_token( self, target ):
 		target = force_unicode( target )
 		count_dict = {}
 		for ndx, token in enumerate(self.tokens[ 1: ]):
@@ -155,19 +163,6 @@ class Phonologist( object ):
 	def coronal_obstruents( self ):
 		return 
 
-class Phrases( Phonologist ):
-
-	@classmethod
-	def loadfile( Phrases, IPA_txtfile ):
-		tokens = load_file( IPA_txtfile )
-		return Phrases(tokens)
-
-	def __init__( self, tokens ):
-		self.tokens = tokens
-	
-	def preceding_phrase(self,token):
-		pass
-
 class Words( Phonologist ):
 
 	@classmethod
@@ -176,9 +171,17 @@ class Words( Phonologist ):
 		return Words(tokens)
 
 	def __init__( self, tokens ):
-		self.tokens = tokens
+		if type(tokens) == str:
+			utokens = tokens.decode('utf-8')
+			self.tokens = utokens.split()
+		if type(tokens) == unicode:
+			self.tokens = tokens.split()
+		if type(tokens) == set:
+			self.tokens = list(tokens)
+		else:
+			self.tokens = tokens
 	
-	def return_tokens_words( self, target ):
+	def return_token_words( self, target ):
 		count_dict = {}
 		for token in self.tokens:
 			for sym in token:
@@ -252,14 +255,15 @@ class Syllables( Phonologist ):
 	def __init__( self, tokens ):
 		if type(tokens) == Words: 
 			self.tokens = tokens.syllabify()
-		elif type(tokens) == Phrases:
-			self.tokens = tokens.syllabify()
 		elif type(tokens) == unicode:
 			self.tokens = tokens.split(".")
+		elif type(tokens) == str:
+			utokens = tokens.decode('utf-8')
+			self.tokens = utokens.split(".")
 		else:
 			self.tokens = tokens
 
-	def return_tokens_sylls( self, target ):
+	def return_token_sylls( self, target ):
 		targ = force_unicode( target )
 		count_dict = {}
 		for token in self.tokens:
@@ -307,6 +311,10 @@ class Symbols( Phonologist ):
 			self.tokens = ''.join( tokens.syllabify() )
 		elif type(tokens) == Syllables:
 			self.tokens = ''.join( tokens.tokens )
+		elif type(tokens) == list:
+			self.tokens = ''.join(tokens)
+		elif type(tokens) == set:
+			self.tokens = ''.join(tokens)
 		elif type(tokens) == unicode:
 			self.tokens = tokens
 		else:
@@ -321,7 +329,6 @@ class Symbols( Phonologist ):
 				count_dict[self.tokens[ ndx ]] += 1
 		return count_dict
 
-	 # SYL
 	def preceding_consonant( self, target ):
 		target = force_unicode( target )
 		count_dict = {}
@@ -335,7 +342,7 @@ class Symbols( Phonologist ):
 					count_dict.setdefault( self.tokens[ ndx - 1 ],0 )
 					count_dict[self.tokens[ ndx - 1 ]] += 1
 		return count_dict
-	# SYL
+
 	def preceding_vowell( self, target ):
 		target = force_unicode( target )
 		count_dict = {}
@@ -350,7 +357,6 @@ class Symbols( Phonologist ):
 					count_dict[self.tokens[ ndx - 1 ]] += 1
 		return count_dict
 
-	# SYL fix for stress
 	def posterior_symbol( self, target ):
 		target = force_unicode( target )
 		count_dict = {}
@@ -362,7 +368,6 @@ class Symbols( Phonologist ):
 			ndx += 1
 		return count_dict	
 
-	# SYL
 	def posterior_consonant( self, target ):
 		target = force_unicode( target )
 		count_dict = {}
@@ -379,7 +384,6 @@ class Symbols( Phonologist ):
 			ndx += 1
 		return count_dict	
 
-	#SYL
 	def posterior_vowell( self, target ):
 		target = force_unicode( target )
 		count_dict = {}
