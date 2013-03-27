@@ -86,7 +86,7 @@ def _find_pos( feature, data  ):
 	found = []
 	for symbol in data:
 		if symbol not in [ COMMA,PERIOD,STRESS,SYLLABLE ]:
-			ndx = IPA_DICT[ symbol.encode('utf-8') ]
+			ndx = IPA_DICT[ symbol ]
 			val = f_list[ ndx ]
 			if val == "+":
 				found.append( symbol )
@@ -97,7 +97,7 @@ def _find_neg( feature, data ):
 	found = []
 	for symbol in data:
 		if symbol not in [ COMMA,PERIOD,STRESS,SYLLABLE ]:
-			ndx = IPA_DICT[ symbol.encode('utf-8') ]
+			ndx = IPA_DICT[ symbol ]
 			val = f_list[ ndx ]
 			if val == "-":
 				found.append(symbol)
