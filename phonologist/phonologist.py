@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import codecs
+import re
 from fmatrixutils import *
 from utils import force_unicode, load_file
 from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA, SYLLABLE, FMATRIX
@@ -12,26 +13,12 @@ class Phonologist( object ):
 	"""
 	base class
 	"""
-	@classmethod
-	def loadfile( Phonologist, IPA_txtfile ):
-		tokens = load_file( IPA_txtfile )
-		return Phonologist(tokens)
-
 	def __init__( self, tokens ):
 		if type(tokens) == list:
 			self.tokens = tokens
-		elif type(tokens) == str:
-			utokens = tokens.decode('utf-8')
-			stokens = utokens.split()
-			self.tokens = stokens
-		elif type(tokens) == unicode:
-			self.tokens = tokens.split()
-		elif type(tokens) == set:
-			self.tokens = list(tokens)
 		else:
-			self.tokens = tokens
-			print "Maybe need an error here"
-	
+			self.tokens = InputMng(tokens).words()		
+			
 	def __len__( self ):
 		return len(self.tokens)
 
@@ -46,36 +33,6 @@ class Phonologist( object ):
 		assert ndx >= 0 and ndx < len( self.tokens ), "index out of range"
 		self.tokens[ ndx ] = token
 
-	def target_symbol( self, ipa_symbol):
-		ipa_symbol = force_unicode(ipa_symbol)
-		count_dict = {}
-		data = ''.join(self.tokens)
-		for symbol in data:
-			if symbol == ipa_symbol:
-				count_dict.setdefault(symbol,0)
-				count_dict[symbol] += 1
-		return count_dict
-
-	def features(self, posfeatures=None, negfeatures=None ):
-		return posfeatures,negfeatures
-	def vowels( self ):
-		return 
-	def glides( self ):
-		return 
-	def nasals( self ):
-		return 
-	def liquids( self ):
-		return 
-	def affricates( self ):
-		return 
-	def laryngeals( self ):
-		return 
-	def noncoronal_obstruents( self ):
-		return 
-	def palatal_obstruents( self ):
-		return 
-	def coronal_obstruents( self ):
-		return
 
 ######################################################
 class Tokens( Phonologist ):
@@ -84,8 +41,8 @@ class Tokens( Phonologist ):
 	"""
 
 	@classmethod
-	def loadfile( Words, IPA_txtfile ):
-		tokens = load_file( IPA_txtfile )
+	def loadfile( Words, ipa_txtfile ):
+		tokens = load_file( ipa_txtfile )
 		return Tokens(tokens)
 
 	def target_token( self, target_token ):
@@ -154,13 +111,15 @@ class Tokens( Phonologist ):
 
 	def unstressed_per_token(self):
 		return 
+class Phrases( object ):
+	pass
 
 ##############################################################
 class Words( Tokens ):
 
 	@classmethod
-	def loadfile( Words, IPA_txtfile ):
-		tokens = load_file( IPA_txtfile )
+	def loadfile( Words, ipa_txtfile ):
+		tokens = load_file( ipa_txtfile )
 		return Words(tokens)
 	
 	def return_token_words( self, target ):
@@ -226,8 +185,8 @@ class Words( Tokens ):
 class Syllables( Tokens ):
 
 	@classmethod
-	def loadfile( Syllables, IPA_txtfile ):
-		ftokens = load_file( IPA_txtfile )
+	def loadfile( Syllables, ipa_txtfile ):
+		ftokens = load_file( ipa_txtfile )
 		ltokens = []
 		for token in ftokens:
 			ltokens.append(token.split("."))
@@ -235,20 +194,13 @@ class Syllables( Tokens ):
 		return Syllables(tokens)
 
 	def __init__( self, tokens ):
-		if type(tokens) == Words: 
+		if type(tokens) == Words or type(tokens) == Phrases: 
 			self.tokens = tokens.syllabify()
 		elif type(tokens) == list:
 			self.tokens = tokens
-		elif type(tokens) == str:
-			utokens = tokens.decode('utf-8')
-			self.tokens = utokens.split(".")
-		elif type(tokens) == unicode:
-			self.tokens = tokens.split(".")
-		elif type(tokens) = set:
-			self.tokens = list(tokens)
 		else:
-			self.tokens = tokens
-			print "Maybe need an error here"
+			self.tokens = InputMng(tokens).syllables()
+
 
 	def return_token_sylls( self, target ):
 		targ = force_unicode( target )
@@ -285,8 +237,8 @@ class Syllables( Tokens ):
 class Symbols( Phonologist ):
 
 	@classmethod
-	def loadfile( Symbols, IPA_txtfile ):
-		ftokens = load_file( IPA_txtfile )
+	def loadfile( Symbols, ipa_txtfile ):
+		ftokens = load_file( ipa_txtfile )
 		jtokens = ''.join(ftokens)
 		stokens = jtokens.split(".")
 		tokens = ''.join(stokens)
@@ -298,16 +250,11 @@ class Symbols( Phonologist ):
 		elif type(tokens) == Syllables:
 			self.tokens = ''.join( tokens.tokens )
 		elif type(tokens) == unicode:
-			self.tokens = tokens
-		elif type(tokens) == str:
-			self.tokens = tokens.decode('utf-8')
-		elif type(tokens) == list:
-			self.tokens = ''.join(tokens)
-		elif type(tokens) == set:
-			self.tokens = ''.join(tokens)
+			output = re.sub( '\s','', tokens )
+			self.tokens = output
 		else:
-			self.tokens = tokens
-			print "Maybe need an error here"
+			self.tokens = InputMng(tokens).symbols()
+
 
 	def preceding_symbol( self, target  ):
 		target = force_unicode( target )
@@ -381,13 +328,45 @@ class Symbols( Phonologist ):
 			if self.tokens[ndx] == target:
 				if STRESS != self.tokens[ndx+1]:
 					if data[ ndx + 1] in VOWELLS:
-						count_dict.setdefault( data[ ndx + 1 ],0 )
+						count_dict.setdefault( data[ ndx + 1 ], 0 )
 						count_dict[data[ ndx + 1 ]] += 1
 				elif data[ ndx + 2] in VOWELLS:
-					count_dict.setdefault( data[ ndx + 2 ],0 )
+					count_dict.setdefault( data[ ndx + 2 ], 0 )
 					count_dict[data[ ndx + 2 ]] += 1
 			ndx += 1
 		return count_dict	
+
+class Features( Symbols ):
+
+	@classmethod
+	def loadfile( Features, ipa_txtfile ):
+		ftokens = load_file( ipa_txtfile )
+		jtokens = ''.join(ftokens)
+		stokens = jtokens.split(".")
+		tokens = ''.join(stokens)
+		return Features(tokens)
+
+	def features(self, posfeatures=None, negfeatures=None ):
+		return posfeatures,negfeatures
+	def vowels( self ):
+		return 
+	def glides( self ):
+		return 
+	def nasals( self ):
+		return 
+	def liquids( self ):
+		return 
+	def affricates( self ):
+		return 
+	def laryngeals( self ):
+		return 
+	def noncoronal_obstruents( self ):
+		return 
+	def palatal_obstruents( self ):
+		return 
+	def coronal_obstruents( self ):
+		return
+
 
 #### Iterator class. ####
 class TokenIterator( object ):
@@ -406,12 +385,41 @@ class TokenIterator( object ):
 		else:
 			raise StopIteration
 
+class InputMng( object ):
+
+	def __init__(self, input):
+		self.input = input
+
+	def words( self ):
+		if type(self.input) == unicode:
+			return self.input.split()
+		elif type(self.input) == str:
+			uinput = self.input.decode('utf-8')
+			return uinput.split()
+		else:
+			raise TypeError, "available"
+
+	def syllables( self ):
+		if type(self.input) == unicode:
+			return self.input.split(".")
+		elif type(self.input) == str:
+			uinput = self.input.decode('utf-8')
+			return uinput.split(".")
+		else:
+			raise TypeError
+
+	def symbols( self ):
+		if type(self.input) == str:
+			output = re.sub('\s','', self.input)
+			return output.decode('utf-8')
+		elif type(self.input) == list:
+			return ''.join(self.input)
+		else:
+			raise TypeError
 
 
 
 
 
 
-
- 
 

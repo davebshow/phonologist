@@ -41,7 +41,7 @@ def features( phon_trans, posfeatures=None, negfeatures=None ):
 	if posfeatures:
 		if negfeatures:
 			data = find_plus( phon_trans, posfeatures )
-			return _red_find_minus(data, negfeatures )
+			return find_minus(phon_trans, negfeatures, data_arg=data )
 		else:
 			return find_plus( phon_trans, posfeatures )
 	else:
@@ -59,27 +59,19 @@ def find_plus( phon_trans, posfeatures ):
 	output = set( data )
 	return output
 
-def find_minus( phon_trans, negfeatures ):
+def find_minus( phon_trans, negfeatures, data_arg=None ):
 	assert type(negfeatures) == list, "negfeatures must be passed as list [ ] "
 	ndx = len(negfeatures) - 1
-	data = ''.join(phon_trans.tokens)
+	if data_arg:
+		data = list(data_arg)
+	else:
+		data = ''.join(phon_trans.tokens)
 	while ndx >= 0:
 		feature = negfeatures[ndx]
 		n_data = _find_neg( feature, data )
 		data = n_data
 		ndx -= 1
 	output = set( data )
-	return output
-
-def _red_find_minus( data, negfeatures ):
-	data = list(data)
-	ndx = len(negfeatures) - 1
-	while ndx >= 0:
-		feature = negfeatures[ndx]
-		n_data = _find_neg( feature, data )
-		data = n_data
-		ndx -= 1
-	output = set(data)
 	return output
 
 def _find_pos( feature, data  ):
