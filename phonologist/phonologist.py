@@ -9,14 +9,18 @@ from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA,
 
 #### Class to create the Phonetic Transcription Object. ####
 class Phonologist( object ):
-
+	"""
+	base class
+	"""
 	@classmethod
 	def loadfile( Phonologist, IPA_txtfile ):
 		tokens = load_file( IPA_txtfile )
 		return Phonologist(tokens)
 
 	def __init__( self, tokens ):
-		if type(tokens) == str:
+		if type(tokens) == list:
+			self.tokens = tokens
+		elif type(tokens) == str:
 			utokens = tokens.decode('utf-8')
 			stokens = utokens.split()
 			self.tokens = stokens
@@ -26,6 +30,7 @@ class Phonologist( object ):
 			self.tokens = list(tokens)
 		else:
 			self.tokens = tokens
+			print "Maybe need an error here"
 	
 	def __len__( self ):
 		return len(self.tokens)
@@ -41,15 +46,6 @@ class Phonologist( object ):
 		assert ndx >= 0 and ndx < len( self.tokens ), "index out of range"
 		self.tokens[ ndx ] = token
 
-#################################################################
-# Symbol level methods 
-
-#################################################################
-
-	# Count the incidence of any number of taret symbols passed as arguments.
-	# Returns a dictionary with { target as keys : incidence as value}
-
-	# UNI
 	def target_symbol( self, ipa_symbol):
 		ipa_symbol = force_unicode(ipa_symbol)
 		count_dict = {}
@@ -60,14 +56,38 @@ class Phonologist( object ):
 				count_dict[symbol] += 1
 		return count_dict
 
+	def features(self, posfeatures=None, negfeatures=None ):
+		return posfeatures,negfeatures
+	def vowels( self ):
+		return 
+	def glides( self ):
+		return 
+	def nasals( self ):
+		return 
+	def liquids( self ):
+		return 
+	def affricates( self ):
+		return 
+	def laryngeals( self ):
+		return 
+	def noncoronal_obstruents( self ):
+		return 
+	def palatal_obstruents( self ):
+		return 
+	def coronal_obstruents( self ):
+		return
 
+######################################################
+class Tokens( Phonologist ):
+	"""
+	this is a base class for Words and Syllables
+	"""
 
-#########################################################################
-# Token level methods # # GEN
-#########################################################################
+	@classmethod
+	def loadfile( Words, IPA_txtfile ):
+		tokens = load_file( IPA_txtfile )
+		return Tokens(tokens)
 
-	# Count the incidence of any number of the target tokens passed as arguments.
-	# Returns a dictionary with { target as keys : incidence as value}
 	def target_token( self, target_token ):
 		target_token = force_unicode( target_token )
 		count_dict = {}
@@ -115,16 +135,6 @@ class Phonologist( object ):
 				stress_dict[ token ] += 1
 		return stress_dict
 
-	# Count stress in a token
-	def stressed_per_token(self):
-		return 
-
-	def unstressed_per_token(self):
-		return 
-
-	#### Methods for working with the Phrases and Words classes###
-	#### Divide the tokens based on syllable boundries ####
-	#GEN
 	def syllabify( self ):
 		syllables = []
 		for token in self.tokens:
@@ -137,50 +147,21 @@ class Phonologist( object ):
 			return True
 		else:
 			return False
-		
+
+	# Count stress in a token
+	def stressed_per_token(self):
+		return 
+
+	def unstressed_per_token(self):
+		return 
 
 ##############################################################
-##############################################################
-###FEATURE THEORY#############################################
-
-	def features(self, posfeatures=None, negfeatures=None ):
-		return posfeatures,negfeatures
-	def vowels( self ):
-		return 
-	def glides( self ):
-		return 
-	def nasals( self ):
-		return 
-	def liquids( self ):
-		return 
-	def affricates( self ):
-		return 
-	def laryngeals( self ):
-		return 
-	def noncoronal_obstruents( self ):
-		return 
-	def palatal_obstruents( self ):
-		return 
-	def coronal_obstruents( self ):
-		return 
-
-class Words( Phonologist ):
+class Words( Tokens ):
 
 	@classmethod
 	def loadfile( Words, IPA_txtfile ):
 		tokens = load_file( IPA_txtfile )
 		return Words(tokens)
-
-	def __init__( self, tokens ):
-		if type(tokens) == str:
-			utokens = tokens.decode('utf-8')
-			self.tokens = utokens.split()
-		elif type(tokens) == unicode:
-			self.tokens = tokens.split()
-		elif type(tokens) == set:
-			self.tokens = list(tokens)
-		else:
-			self.tokens = tokens
 	
 	def return_token_words( self, target ):
 		count_dict = {}
@@ -242,7 +223,7 @@ class Words( Phonologist ):
 			return count_dict
 
 ###################################################
-class Syllables( Phonologist ):
+class Syllables( Tokens ):
 
 	@classmethod
 	def loadfile( Syllables, IPA_txtfile ):
@@ -256,13 +237,18 @@ class Syllables( Phonologist ):
 	def __init__( self, tokens ):
 		if type(tokens) == Words: 
 			self.tokens = tokens.syllabify()
-		elif type(tokens) == unicode:
-			self.tokens = tokens.split(".")
+		elif type(tokens) == list:
+			self.tokens = tokens
 		elif type(tokens) == str:
 			utokens = tokens.decode('utf-8')
 			self.tokens = utokens.split(".")
+		elif type(tokens) == unicode:
+			self.tokens = tokens.split(".")
+		elif type(tokens) = set:
+			self.tokens = list(tokens)
 		else:
 			self.tokens = tokens
+			print "Maybe need an error here"
 
 	def return_token_sylls( self, target ):
 		targ = force_unicode( target )
@@ -285,7 +271,6 @@ class Syllables( Phonologist ):
 				count_dict[ token ] += tokens[token]
 		return count_dict
 
-    #SYL
 	def unstressed_target_sylls( self, target ):
 		### faster if I don't call return tokens
 		tokens = self.return_tokens_sylls( target )
@@ -312,14 +297,17 @@ class Symbols( Phonologist ):
 			self.tokens = ''.join( tokens.syllabify() )
 		elif type(tokens) == Syllables:
 			self.tokens = ''.join( tokens.tokens )
+		elif type(tokens) == unicode:
+			self.tokens = tokens
+		elif type(tokens) == str:
+			self.tokens = tokens.decode('utf-8')
 		elif type(tokens) == list:
 			self.tokens = ''.join(tokens)
 		elif type(tokens) == set:
 			self.tokens = ''.join(tokens)
-		elif type(tokens) == unicode:
-			self.tokens = tokens
 		else:
-			self.tokens = tokens.decode('utf-8')
+			self.tokens = tokens
+			print "Maybe need an error here"
 
 	def preceding_symbol( self, target  ):
 		target = force_unicode( target )
@@ -401,7 +389,6 @@ class Symbols( Phonologist ):
 			ndx += 1
 		return count_dict	
 
-		
 #### Iterator class. ####
 class TokenIterator( object ):
 	def __init__( self, phon_trans  ):
