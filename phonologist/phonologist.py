@@ -9,16 +9,13 @@ from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA,
 #### Object oriented library for working with IPA transcriptions. ####
 
 #### Class to create the Phonetic Transcription Object. ####
-class Phonologist( object ):
+class BasePhonologist( object ):
 	"""
 	base class
 	"""
 	def __init__( self, tokens ):
-		if type(tokens) == list:
-			self.tokens = tokens
-		else:
-			self.tokens = InputMng(tokens).words()		
-			
+		self.tokens = InputManager(tokens).words()		
+
 	def __len__( self ):
 		return len(self.tokens)
 
@@ -35,15 +32,10 @@ class Phonologist( object ):
 
 
 ######################################################
-class Tokens( Phonologist ):
+class BaseTokens( BasePhonologist ):
 	"""
 	this is a base class for Words and Syllables
 	"""
-
-	@classmethod
-	def loadfile( Words, ipa_txtfile ):
-		tokens = load_file( ipa_txtfile )
-		return Tokens(tokens)
 
 	def target_token( self, target_token ):
 		target_token = force_unicode( target_token )
@@ -55,7 +47,7 @@ class Tokens( Phonologist ):
 		return count_dict
 
 	def preceding_token( self, target ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {}
 		for ndx, token in enumerate(self.tokens[ 1: ]):
 			if token == target:
@@ -65,7 +57,7 @@ class Tokens( Phonologist ):
 		return count_dict 
 
 	def posterior_token( self, target ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {}
 		ndx = 0
 		for i in range( len( self.tokens ) - 1 ):
@@ -115,12 +107,15 @@ class Phrases( object ):
 	pass
 
 ##############################################################
-class Words( Tokens ):
+class Words( BaseTokens ):
 
 	@classmethod
 	def loadfile( Words, ipa_txtfile ):
-		tokens = load_file( ipa_txtfile )
-		return Words(tokens)
+		f = codecs.open(IPA_txtfile,"r",encoding='utf-8')
+		text = f.readline()
+		words = text.split()
+		f.close()
+		return Words(words)
 	
 	def return_token_words( self, target ):
 		count_dict = {}
@@ -153,7 +148,7 @@ class Words( Tokens ):
 		return count_dict
 
 	def pretonic_postonic_words( self, target ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {"pretonic":0,"postonic":0}
 		for token in self.tokens:
 			for sym in token:
@@ -182,28 +177,26 @@ class Words( Tokens ):
 			return count_dict
 
 ###################################################
-class Syllables( Tokens ):
+class Syllables( BaseTokens ):
 
 	@classmethod
 	def loadfile( Syllables, ipa_txtfile ):
-		ftokens = load_file( ipa_txtfile )
-		ltokens = []
-		for token in ftokens:
-			ltokens.append(token.split("."))
-		tokens = sum(ltokens,[])
-		return Syllables(tokens)
+		f = codecs.open(IPA_txtfile,"r",encoding='utf-8')
+		text = f.readline()
+		tokens = text.split()
+		syllable_list = []
+		for word in tokens:
+			syllables.append(word.split(","))
+		syllables = sum(syllable_list,[])
+		return Syllables(syllables)
+
 
 	def __init__( self, tokens ):
-		if type(tokens) == Words or type(tokens) == Phrases: 
-			self.tokens = tokens.syllabify()
-		elif type(tokens) == list:
-			self.tokens = tokens
-		else:
-			self.tokens = InputMng(tokens).syllables()
+		self.tokens = InputManager(tokens).syllables()
 
 
 	def return_token_sylls( self, target ):
-		targ = force_unicode( target )
+		targ = InputManager(target).force_unicode()
 		count_dict = {}
 		for token in self.tokens:
 			print token
@@ -234,30 +227,22 @@ class Syllables( Tokens ):
 		return count_dict
 
 ###############################################################
-class Symbols( Phonologist ):
+class Symbols( BasePhonologist ):
 
 	@classmethod
 	def loadfile( Symbols, ipa_txtfile ):
-		ftokens = load_file( ipa_txtfile )
-		jtokens = ''.join(ftokens)
-		stokens = jtokens.split(".")
-		tokens = ''.join(stokens)
-		return Symbols(tokens)
-
+		f = codecs.open(IPA_txtfile,"r",encoding='utf-8')
+		text = f.readline()
+		joined_text = re.sub('\s', '', text)
+		syllables = joined_text.split(",")
+		symbols = ''.join(syllables)
+		return Symbols(symbols)
+		
 	def __init__( self, tokens ):
-		if type(tokens) == Words:
-			self.tokens = ''.join( tokens.syllabify() )
-		elif type(tokens) == Syllables:
-			self.tokens = ''.join( tokens.tokens )
-		elif type(tokens) == unicode:
-			output = re.sub( '\s','', tokens )
-			self.tokens = output
-		else:
-			self.tokens = InputMng(tokens).symbols()
-
+		self.tokens = InputManager(tokens).symbols()
 
 	def preceding_symbol( self, target  ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {}
 		for ndx,symbol in enumerate( self.tokens[ 1:] ):
 			if symbol == target:
@@ -266,7 +251,7 @@ class Symbols( Phonologist ):
 		return count_dict
 
 	def preceding_consonant( self, target ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {}
 		for ndx,symbol in enumerate( self.tokens[ 1:] ):
 			if symbol == target:
@@ -280,7 +265,7 @@ class Symbols( Phonologist ):
 		return count_dict
 
 	def preceding_vowell( self, target ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {}
 		for ndx,symbol in enumerate( self.tokens[ 1:] ):
 			if symbol == target:
@@ -294,7 +279,7 @@ class Symbols( Phonologist ):
 		return count_dict
 
 	def posterior_symbol( self, target ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {}
 		ndx = 0
 		for i in range( len( self.tokens ) - 1):
@@ -305,7 +290,7 @@ class Symbols( Phonologist ):
 		return count_dict	
 
 	def posterior_consonant( self, target ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {}
 		ndx = 0
 		for i in range( len( self.tokens ) - 1):
@@ -321,7 +306,7 @@ class Symbols( Phonologist ):
 		return count_dict	
 
 	def posterior_vowell( self, target ):
-		target = force_unicode( target )
+		target = InputManager(target).force_unicode()
 		count_dict = {}
 		ndx = 0
 		for i in range( len( self.tokens ) - 1):
@@ -339,12 +324,14 @@ class Symbols( Phonologist ):
 class Features( Symbols ):
 
 	@classmethod
-	def loadfile( Features, ipa_txtfile ):
-		ftokens = load_file( ipa_txtfile )
-		jtokens = ''.join(ftokens)
-		stokens = jtokens.split(".")
-		tokens = ''.join(stokens)
-		return Features(tokens)
+	def loadfile( Symbols, ipa_txtfile ):
+		f = codecs.open(IPA_txtfile,"r",encoding='utf-8')
+		text = f.readline()
+		joined_text = re.sub('\s', '', text)
+		syllables = joined_text.split(",")
+		symbols = ''.join(syllables)
+		return Symbols(symbols)
+		
 
 	def features(self, posfeatures=None, negfeatures=None ):
 		return posfeatures,negfeatures
@@ -385,22 +372,34 @@ class TokenIterator( object ):
 		else:
 			raise StopIteration
 
-class InputMng( object ):
+class InputManager( object ):
 
 	def __init__(self, input):
 		self.input = input
 
+	def force_unicode():
+		if type(self.input) == str:
+			return self.input.decode('utf-8')
+		else:
+			return self.input
+
 	def words( self ):
-		if type(self.input) == unicode:
+		if type(self.input) == list:
+			return self.input
+		elif type(self.input) == unicode:
 			return self.input.split()
 		elif type(self.input) == str:
 			uinput = self.input.decode('utf-8')
 			return uinput.split()
 		else:
-			raise TypeError, "available"
+			raise TypeError
 
 	def syllables( self ):
-		if type(self.input) == unicode:
+		if type(self.input) == Words or type(self.input) == Phrases: 
+			return self.input.syllabify()
+		elif type(self.input) == list:
+			return self.input
+		elif type(self.input) == unicode:
 			return self.input.split(".")
 		elif type(self.input) == str:
 			uinput = self.input.decode('utf-8')
@@ -409,6 +408,13 @@ class InputMng( object ):
 			raise TypeError
 
 	def symbols( self ):
+		if type(self.input) == Words:
+			return ''.join( self.input.syllabify() )
+		elif type(self.input) == Syllables:
+			return ''.join( self.input.tokens )
+		elif type(self.input) == unicode:
+			output = re.sub( '\s','', self.input )
+			return output
 		if type(self.input) == str:
 			output = re.sub('\s','', self.input)
 			return output.decode('utf-8')
@@ -418,7 +424,7 @@ class InputMng( object ):
 			raise TypeError
 
 
-
+	
 
 
 
