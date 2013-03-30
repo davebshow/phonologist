@@ -2,7 +2,7 @@
 import json
 import csv
 from constants import  ( IPA_SYMBOLS, STRESS, COMMA, PERIOD, SYLLABLE, FMATRIX )
-from utils import force_unicode
+
 
 ### perkins: -sp -ya -nomc and for words: -nospe
 def write_fmatrix():
@@ -74,7 +74,7 @@ def find_minus( phon_trans, negfeatures, data_arg=None ):
 	output = set( data )
 	return output
 
-def _find_pos( feature, data  ):
+def find_pos( feature, data  ):
 	f_list = FMATRIX[ feature ]
 	found = []
 	for symbol in data:
@@ -85,7 +85,7 @@ def _find_pos( feature, data  ):
 				found.append( symbol )
 	return found
 
-def _find_neg( feature, data ):
+def find_neg( feature, data ):
 	f_list = FMATRIX[ feature ]
 	found = []
 	for symbol in data:
@@ -104,6 +104,11 @@ def ipa_dict():
 	for ndx, symbol in enumerate( IPA_SYMBOLS ):
 		ipa_dict[ symbol ] = ndx
 	return ipa_dict 
-
+	
+def force_unicode(token):
+	if type(token) == str:
+		return token.decode('utf-8')
+	else:
+		return token
 IPA_DICT = ipa_dict()
 

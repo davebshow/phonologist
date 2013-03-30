@@ -2,9 +2,11 @@
 
 import codecs
 import re
-from fmatrixutils import *
-from utils import force_unicode, load_file
-from constants import   IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA, SYLLABLE, FMATRIX
+from fmatrixutils import find_pos, find_neg
+from constants import  ( IPA_SYMBOLS, STRESS, VOWELLS, CONSONANTS, PERIOD, COMMA, SYLLABLE, 
+							FMATRIX, GLIDES, VOWELLS_GLIDES, LIQUIDS, NASALS, NASALS_LIQUIDS,
+							AFFRICATES, LARYNGEALS, NONCORONAL_OBSTRUENTS, PALATAL_OBSTRUENTS,
+							CORONAL_OBSTRUENTS, DISTINCTIVE_FEATURES )
 
 #### Object oriented library for working with IPA transcriptions. ####
 
@@ -97,12 +99,6 @@ class BaseTokens( BasePhonologist ):
 		else:
 			return False
 
-	# Count stress in a token
-	def stressed_per_token(self):
-		return 
-
-	def unstressed_per_token(self):
-		return 
 class Phrases( object ):
 	pass
 
@@ -241,13 +237,20 @@ class Symbols( BasePhonologist ):
 	def __init__( self, tokens ):
 		self.tokens = InputManager(tokens).symbols()
 
+	def count_symbol( self ):
+		pass
+
 	def preceding_symbol( self, target  ):
 		target = InputManager(target).force_unicode()
 		count_dict = {}
 		for ndx,symbol in enumerate( self.tokens[ 1:] ):
 			if symbol == target:
-				count_dict.setdefault( self.tokens[ ndx ],0 )
-				count_dict[self.tokens[ ndx ]] += 1
+				if STRESS != self.tokens[ndx]: 
+					count_dict.setdefault( self.tokens[ ndx ],0 )
+					count_dict[self.tokens[ ndx ]] += 1
+				elif ndx > 0:
+					count_dict.setdefault( self.tokens[ ndx - 1 ],0 )
+					count_dict[self.tokens[ ndx - 1 ]] += 1
 		return count_dict
 
 	def preceding_consonant( self, target ):
@@ -284,8 +287,12 @@ class Symbols( BasePhonologist ):
 		ndx = 0
 		for i in range( len( self.tokens ) - 1):
 			if self.tokens[ndx] == target:
-				count_dict.setdefault( self.tokens[ ndx + 1 ],0 )
-				count_dict[self.tokens[ ndx + 1 ]] += 1
+				if STRESS != self.tokens[ndx+1]:
+					count_dict.setdefault( self.tokens[ ndx + 1 ],0 )
+					count_dict[self.tokens[ ndx + 1 ]] += 1
+				else:
+					count_dict.setdefault( self.tokens[ ndx + 2 ],0 )
+					count_dict[self.tokens[ ndx + 2 ]] += 1						
 			ndx += 1
 		return count_dict	
 
@@ -322,38 +329,71 @@ class Symbols( BasePhonologist ):
 		return count_dict	
 
 class Features( Symbols ):
+	"""
+	attributes: possible features, feature groups
+	method: feature_dict
+	"""
+	features_dictionary = DISTINCTIVE_FEATURES
 
 	@classmethod
 	def loadfile( Symbols, ipa_txtfile ):
-		f = codecs.open(IPA_txtfile,"r",encoding='utf-8')
+		f = codecs.open( IPA_txtfile, "r", encoding='utf-8' )
 		text = f.readline()
 		joined_text = re.sub('\s', '', text)
 		syllables = joined_text.split(",")
 		symbols = ''.join(syllables)
-		return Symbols(symbols)
+		return Features(symbols)
 		
 
-	def features(self, posfeatures=None, negfeatures=None ):
-		return posfeatures,negfeatures
-	def vowels( self ):
-		return 
-	def glides( self ):
-		return 
-	def nasals( self ):
-		return 
-	def liquids( self ):
-		return 
-	def affricates( self ):
-		return 
-	def laryngeals( self ):
-		return 
-	def noncoronal_obstruents( self ):
-		return 
-	def palatal_obstruents( self ):
-		return 
-	def coronal_obstruents( self ):
-		return
+	def features( self, plus=None, minus=None ):
+		if plus:
+			if minus:
+				data = find_plus( phon_trans, plus )
+				return find_minus(phon_trans, minus, data_arg=data )
+			else:
+				return find_plus( phon_trans, plus )
+		else:
+			return find_minus( phon_trans, minus )
 
+	def find_plus( self, plus, data_arg=None ):
+		assert type( plus ) == list, "plus must be passed as list [ ] "
+		ndx = len( plus ) - 1
+		if data_arg:
+			data = list( data_args )
+		else:
+			data = self.tokens
+		for feature in plus:
+			n_data = find_pos( feature, data )
+			data = n_data
+		ouput = set(data)
+		return output
+
+	def find_minus( phon_trans, minus, data_arg=None ):
+		assert type(minus) == list, "minus must be passed as list [ ] "
+		ndx = len(minus) - 1
+		if data_arg:
+			data = list(data_arg)
+		else:
+			data = self.tokens
+		for feature in minus:
+			n_data = find_neg( feature, data )
+			data = n_data
+		output = set( data )
+		return output
+
+	def feature_group( self, group=None ):
+		symbol_dict = {}
+		for symbol in self.tokens:
+			if symbol in group:
+				symbol_dict.setdefault(symbol,0)
+				symbol_dict[ symbol ] += 1
+		return symbol_dict
+
+class Vowels( Features ):
+	"""
+	vowel chart
+	"""
+	pass
 
 #### Iterator class. ####
 class TokenIterator( object ):
