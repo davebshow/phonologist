@@ -75,6 +75,9 @@ def find_minus( phon_trans, negfeatures, data_arg=None ):
 	return output
 
 def find_pos( feature, data  ):
+	"""
+	Used in Features class to find positive features in the fmatrix.
+	"""
 	f_list = FMATRIX[ feature ]
 	found = []
 	for symbol in data:
@@ -86,6 +89,9 @@ def find_pos( feature, data  ):
 	return found
 
 def find_neg( feature, data ):
+	"""
+	Used in Features class to find negative features in the fmatrix.
+	"""
 	f_list = FMATRIX[ feature ]
 	found = []
 	for symbol in data:
@@ -110,5 +116,6 @@ def force_unicode(token):
 		return token.decode('utf-8')
 	else:
 		return token
+		
 IPA_DICT = ipa_dict()
 
