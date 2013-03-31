@@ -404,12 +404,12 @@ class Symbols( BasePhonologist ):
 		for i in range( len( self.tokens ) - 1):
 			if self.tokens[ndx] == target:
 				if STRESS != self.tokens[ndx+1]:
-					if data[ ndx + 1] in VOWELLS:
-						count_dict.setdefault( data[ ndx + 1 ], 0 )
-						count_dict[data[ ndx + 1 ]] += 1
-				elif data[ ndx + 2] in VOWELLS:
-					count_dict.setdefault( data[ ndx + 2 ], 0 )
-					count_dict[data[ ndx + 2 ]] += 1
+					if self.tokens[ ndx + 1] in VOWELLS:
+						count_dict.setdefault( self.tokens[ ndx + 1 ], 0 )
+						count_dict[self.tokens[ ndx + 1 ]] += 1
+				elif self.tokens[ ndx + 2] in VOWELLS:
+					count_dict.setdefault( self.tokens[ ndx + 2 ], 0 )
+					count_dict[self.tokens[ ndx + 2 ]] += 1
 			ndx += 1
 		return count_dict	
 
@@ -582,7 +582,7 @@ class InputManager( object ):
 		if type(self.input) == Words or type(self.input) == Phrases:
 			return ''.join( self.input.syllabify() )
 		elif type(self.input) == Syllables:
-			return ''.join( self.input.syllables )
+			return ''.join( self.input.tokens )
 		elif type(self.input) == unicode:
 			output = re.sub( '\s','', self.input )
 			return output
