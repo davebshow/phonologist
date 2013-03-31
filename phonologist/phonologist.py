@@ -191,7 +191,7 @@ class Phrases( BaseTokens ):
 ##############################################################
 class Words( BaseTokens ):
 	"""
-	Class for working with text divided at word boundries
+	Class for working with tokens divided at word boundries
 	"""
 
 	@classmethod
@@ -242,6 +242,9 @@ class Words( BaseTokens ):
 
 ###################################################
 class Syllables( BaseTokens ):
+	"""
+	Class for working with tokens divided at syllable boundries.
+	"""
 
 	@classmethod
 	def loadfile( Syllables, ipa_textfile ):
