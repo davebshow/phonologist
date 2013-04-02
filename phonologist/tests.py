@@ -15,7 +15,7 @@ class PhonologistTestCase(unittest.TestCase):
     def test_get_words(self):
         w = u"yo escribo un test"
         words = Words(w)
-        self.assertEquals(words.tokens, [u'yo', u'escrib', u'un', u'test'])
+        self.assertEquals(words.tokens, [u'yo', u'escribo', u'un', u'test'])
 
 
 if __name__ == '__main__':
