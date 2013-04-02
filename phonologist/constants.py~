@@ -14,9 +14,9 @@ IPA_SYMBOLS = [u't',u'd',u's',u'z',u'ɬ',u'ɮ',u'θ',u'ð',u'ʃ',u'ʒ',u'c',u'ɟ
 				u'ɥ',u'ɰ',u'i',u'ɪ',u'u',u'ʊ',u'e',u'ɛ',u'o',u'ɔ',u'a',u'æ',u'y',u'ʏ',u'ø',u'œ',u'ə',u'ɯ']
 
 
-VOWELS = [u'i',u'ɪ',u'u',u'ʊ',u'e',u'ɛ',u'o',u'ɔ',u'a',u'æ',u'y',u'ʏ',u'ø',u'œ',u'ə',u'ɯ']
+VOWELLS = [u'i',u'ɪ',u'u',u'ʊ',u'e',u'ɛ',u'o',u'ɔ',u'a',u'æ',u'y',u'ʏ',u'ø',u'œ',u'ə',u'ɯ']
 GLIDES = [u'j',u'w',u'ɥ',u'ɰ']
-VOWELS_GLIDES = [u'j',u'w',u'ɥ',u'ɰ',u'i',u'ɪ',u'u',u'ʊ',u'e',u'ɛ',u'o',u'ɔ',u'a',u'æ',u'y',u'ʏ',u'ø',u'œ',u'ə',u'ɯ']
+VOWELLS_GLIDES = [u'j',u'w',u'ɥ',u'ɰ',u'i',u'ɪ',u'u',u'ʊ',u'e',u'ɛ',u'o',u'ɔ',u'a',u'æ',u'y',u'ʏ',u'ø',u'œ',u'ə',u'ɯ']
 LIQUIDS = [u'l',u'ʎ',u'ɾ',u'r',u'ɹ',u'ʀ']
 NASALS = [u'm',u'n',u'ŋ',u'ɳ',u'ɲ',u'ɴ']
 NASALS_LIQUIDS = [u'm',u'n',u'ŋ',u'ɳ',u'ɲ',u'ɴ',u'l',u'ʎ',u'ɾ',u'r',u'ɹ',u'ʀ']
@@ -39,8 +39,8 @@ DISTINCTIVE_FEATURES = {"cons":"Consonantal","dist":"Distributed","syll":"Syllab
                         "phar":"Pharengeal","dor":"dorsal","SG":"Spread Glottis"}
 
 FEATURE_GROUPS = [CONSONANTS, CORONAL_OBSTRUENTS, PALATAL_OBSTRUENTS, NONCORONAL_OBSTRUENTS, 
-                LARYNGEALS, AFFRICATES, NASALS_LIQUIDS, NASALS, LIQUIDS, VOWELS_GLIDES, 
-                GLIDES, VOWELS ]
+                LARYNGEALS, AFFRICATES, NASALS_LIQUIDS, NASALS, LIQUIDS, VOWELLS_GLIDES, 
+                GLIDES, VOWELLS ]
 
 FMATRIX = {
 "cons": 
