@@ -10,6 +10,16 @@ csvfile = codecs.open('TEST5.csv','wb')
 csvfile.write(u'\ufeff'.encode('utf8'))
 writer = csv.writer(csvfile)
 
+ph = Phonologist(from_file='asdasds')
+
+ph.words + list(Syllables)
+
+ph.phrases = list(Phrases)
+ph.prhases[0] = Phrases
+ph.prhases[0].words = list(Words)
+
+ph.syllables + list(Syllables)
+
 W = Words.loadfile("manolowords.txt")
 
 S = Syllables(W) 

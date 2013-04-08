@@ -3,42 +3,58 @@
 import codecs
 import re
 from fmatrixutils import find_pos, find_neg
-from constants import  ( IPA_SYMBOLS, STRESS, VOWELS, CONSONANTS, PERIOD, COMMA, SYLLABLE, 
+from constants import  (IPA_SYMBOLS, STRESS, VOWELS, CONSONANTS, PERIOD, COMMA, SYLLABLE, 
 							FMATRIX, GLIDES, VOWELS_GLIDES, LIQUIDS, NASALS, NASALS_LIQUIDS,
 							AFFRICATES, LARYNGEALS, NONCORONAL_OBSTRUENTS, PALATAL_OBSTRUENTS,
-							CORONAL_OBSTRUENTS, DISTINCTIVE_FEATURES, FEATURE_GROUPS )
+							CORONAL_OBSTRUENTS, DISTINCTIVE_FEATURES, FEATURE_GROUPS)
 
 
-class BasePhonologist( object ):
+class Phonologist(object):
 	"""
 	Base class with magic methods for all other classes.
 	"""
-	def __init__( self, tokens ):
-		self.tokens = InputManager( tokens ).words()		
+	def __init__(self, tokens):
+		self._tokens = tokens
+		self.phrases = Phrases(InputManager(tokens).words())
+		self.words = Words(InputManager(tokens).words())
+		self.syllables = Syllables(InputManager(tokens).syllables())
+		self.symbols = Symbols(InputManager(tokens).symbols())
 
-	def __len__( self ):
-		return len(self.tokens)
+	def _get_tokens(self):
+		return self._tokens
+
+	def _set_tokens(self, tokens):
+		self._tokens = tokens
+		self.phrases = Phrases(InputManager(tokens).words())
+		self.words = Words(InputManager(tokens).words())
+		self.syllables = Syllables(InputManager(tokens).syllables())
+		self.symbols = Symbols(InputManager(tokens).symbols())
+
+	tokens = property(_get_tokens, _set_tokens)
+
+	def __len__(self):
+		return len(self._tokens)
 
 	def __iter__( self ):
-		return TokenIterator( self.tokens )
+		return TokenIterator( self._tokens )
 
 	def __getitem__( self, ndx ):
-		assert ndx >= 0 and ndx < len( self.tokens ), "index out of range"
-		return self.tokens[ ndx ]
+		assert ndx >= 0 and ndx < len( self._tokens ), "index out of range"
+		return self._tokens[ ndx ]
 
 	def __setitem__( self, ndx, token ):
-		assert ndx >= 0 and ndx < len( self.tokens ), "index out of range"
-		self.tokens[ ndx ] = token
+		assert ndx >= 0 and ndx < len( self._tokens ), "index out of range"
+		self._tokens[ ndx ] = token
 
 ######################################################
-class Token( BasePhonologist ):
+class Token( Phonologist ):
 
 	def __init__( self, token ):
 
-		self.tokens = InputManager(token).token()
+		self._tokens = InputManager(token).token()
 
 	def stressed( self ):
-		if STRESS in self.tokens:
+		if STRESS in self._tokens:
 			return True
 		else:
 			return False
@@ -59,19 +75,24 @@ class Token( BasePhonologist ):
 		pass
 
 	def syllabify( self ):
-		return self.tokens.split(".")
+		return self._tokens.split(".")
+
 	def token_to_symbols( self ):
 		return Symbols(self)
+	def syllable_position_in_token(self):
+		pass
 
 ##########################################################
-class BaseTokens( BasePhonologist ):
+class BaseTokens( Phonologist ):
 	"""
 	This is a base class for Words and Syllables (the "tokens" classes). 
 	Words objects should be divided at word boundries.
 	Syllables objects should be divided at syllable boundries.
 	"""
+	def __init__(self, tokens):
+		self._tokens = tokens
 
-	def count_token( self, target ):
+	def count_token(self, target):
 		"""
 		Count the frequency of target token.
 		----------------------
@@ -80,12 +101,12 @@ class BaseTokens( BasePhonologist ):
 		"""
 		target = InputManager( target ).force_unicode()
 		token_dict = { target: 0 }
-		for token in self.tokens:
+		for token in self._tokens:
 			if token == target:
 				token_dict[ target ] += 1
 		return token_dict
 
-	def preceding_token( self, target ):
+	def preceding_token(self, target):
 		"""
 		Count the frequency of tokens preceding target token.
 		-----------------------
@@ -94,10 +115,10 @@ class BaseTokens( BasePhonologist ):
 		"""
 		target = InputManager(target).force_unicode()
 		token_dict = {}
-		for ndx, token in enumerate(self.tokens[ 1: ]):
+		for ndx, token in enumerate(self._tokens[ 1: ]):
 			if token == target:
-				token_dict.setdefault( self.tokens[ ndx ], 0 )
-				token_dict[ self.tokens[ ndx ] ] += 1
+				token_dict.setdefault( self._tokens[ ndx ], 0 )
+				token_dict[ self._tokens[ ndx ] ] += 1
 		return token_dict 
 
 	def posterior_token( self, target ):
@@ -110,10 +131,10 @@ class BaseTokens( BasePhonologist ):
 		target = InputManager(target).force_unicode()
 		token_dict = {}
 		ndx = 0
-		for i in range( len( self.tokens ) - 1 ):
-			if self.tokens[ndx] == target:
-				token_dict.setdefault( self.tokens[ ndx + 1], 0 )
-				token_dict[ self.tokens[ndx + 1] ] += 1
+		for i in range( len( self._tokens ) - 1 ):
+			if self._tokens[ndx] == target:
+				token_dict.setdefault( self._tokens[ ndx + 1], 0 )
+				token_dict[ self._tokens[ndx + 1] ] += 1
 			ndx += 1
 		return token_dict
 
@@ -124,7 +145,7 @@ class BaseTokens( BasePhonologist ):
 		return - dict { word with primary stress : frequency }
 		"""
 		stress_dict = {}
-		for token in self.tokens:
+		for token in self._tokens:
 			if STRESS in token:
 				stress_dict.setdefault( token, 0 )
 				stress_dict[ token ] += 1
@@ -137,7 +158,7 @@ class BaseTokens( BasePhonologist ):
 		return - dict { word without primary stress : frequency }
 		"""
 		stress_dict = {}
-		for token in self.tokens:
+		for token in self._tokens:
 			if STRESS not in token:
 				stress_dict.setdefault( token, 0 )
 				stress_dict[ token ] += 1
@@ -152,7 +173,7 @@ class BaseTokens( BasePhonologist ):
 		"""
 		target = InputManager( target ).force_unicode()
 		token_dict = {}
-		for token in self.tokens:
+		for token in self._tokens:
 			if target in token:
 				token_dict.setdefault( token, 0 )
 				token_dict[ token ] += 1
@@ -197,7 +218,7 @@ class BaseTokens( BasePhonologist ):
 		return - list [ syll, ..., syll ]
 		"""
 		syllables = []
-		for token in self.tokens:
+		for token in self._tokens:
 			syllables.append(token.split("."))
 		return sum(syllables,[]) # hehe good trick
 
@@ -232,7 +253,7 @@ class Phrases( BaseTokens ):
 		turn them into tokens for intersyllabic analysis.
 		"""
 		newtokens = []
-		for token in self.tokens:
+		for token in self._tokens:
 			syllables = token.split(".")
 			newtoken = unicode()
 			for syllable in syllables:
@@ -253,7 +274,7 @@ class Words( BaseTokens ):
 	"""
 
 	@classmethod
-	def loadfile( Words, ipa_textfile ):
+	def loadfile( cls, ipa_textfile ):
 		"""
 		Try to read the input textfile to proper format for words.
 		"""
@@ -263,7 +284,7 @@ class Words( BaseTokens ):
 		for line in lines:
 			words += line.split()
 		f.close()
-		return Words(words)
+		return cls(words)
 	
 	def pretonic_postonic_words( self, target ):
 		"""
@@ -275,7 +296,7 @@ class Words( BaseTokens ):
 		"""
 		target = InputManager(target).force_unicode()
 		count_dict = { "pretonic":0, "postonic":0 }
-		for token in self.tokens:
+		for token in self._tokens:
 			if target in token:
 				token_dict = self._pretonic_postonic( target, token )
 				count_dict[ "pretonic" ] += token_dict[ "pretonic" ]
@@ -320,8 +341,8 @@ class Syllables( BaseTokens ):
 			syllables += word.split(".")
 		return Syllables(syllables)
 
-	def __init__( self, tokens ):
-		self.tokens = InputManager(tokens).syllables()
+	def __init__(self, tokens):
+		self._tokens = tokens
 
 	def pretonic_postonic_syllables(self):
 		pass
@@ -329,7 +350,7 @@ class Syllables( BaseTokens ):
 	#### SYLLABLE NUCLEUS AND EVERYTHING HERE i.e. More Methods Coming
 
 ###############################################################
-class Symbols( BasePhonologist ):
+class Symbols( Phonologist ):
 	"""
 	Class for working with transcriptions at a symbol level.
 	Does not take into account syllable or word boundries.
@@ -351,8 +372,8 @@ class Symbols( BasePhonologist ):
 		symbols = re.sub( '[\s.]', '', text )
 		return Symbols( symbols )
 		
-	def __init__( self, tokens ):
-		self.tokens = InputManager( tokens ).symbols()
+	def __init__(self, tokens):
+		self._tokens = tokens
 
 	def count_symbol( self, target ):
 		"""
@@ -372,14 +393,14 @@ class Symbols( BasePhonologist ):
 		"""
 		target = InputManager(target).force_unicode()
 		count_dict = {}
-		for ndx,symbol in enumerate( self.tokens[ 1:] ):
+		for ndx,symbol in enumerate( self._tokens[ 1:] ):
 			if symbol == target:
-				if STRESS != self.tokens[ndx]: 
-					count_dict.setdefault( self.tokens[ ndx ],0 )
-					count_dict[self.tokens[ ndx ]] += 1
+				if STRESS != self._tokens[ndx]: 
+					count_dict.setdefault( self._tokens[ ndx ],0 )
+					count_dict[self._tokens[ ndx ]] += 1
 				elif ndx > 0:
-					count_dict.setdefault( self.tokens[ ndx - 1 ],0 )
-					count_dict[self.tokens[ ndx - 1 ]] += 1
+					count_dict.setdefault( self._tokens[ ndx - 1 ],0 )
+					count_dict[self._tokens[ ndx - 1 ]] += 1
 		return count_dict
 
 #####################################################################################
@@ -389,29 +410,29 @@ class Symbols( BasePhonologist ):
 	def preceding_consonant( self, target ):
 		target = InputManager(target).force_unicode()
 		count_dict = {}
-		for ndx,symbol in enumerate( self.tokens[ 1:] ):
+		for ndx,symbol in enumerate( self._tokens[ 1:] ):
 			if symbol == target:
-				if STRESS != self.tokens[ndx]: 
-					if self.tokens[ ndx ] in CONSONANTS:
-						count_dict.setdefault( self.tokens[ ndx ],0 )
-						count_dict[self.tokens[ ndx ]] += 1
-				elif ndx > 0 and self.tokens[ ndx - 1 ] in CONSONANTS:
-					count_dict.setdefault( self.tokens[ ndx - 1 ],0 )
-					count_dict[self.tokens[ ndx - 1 ]] += 1
+				if STRESS != self._tokens[ndx]: 
+					if self._tokens[ ndx ] in CONSONANTS:
+						count_dict.setdefault( self._tokens[ ndx ],0 )
+						count_dict[self._tokens[ ndx ]] += 1
+				elif ndx > 0 and self._tokens[ ndx - 1 ] in CONSONANTS:
+					count_dict.setdefault( self._tokens[ ndx - 1 ],0 )
+					count_dict[self._tokens[ ndx - 1 ]] += 1
 		return count_dict
 
 	def preceding_vowel( self, target ):
 		target = InputManager(target).force_unicode()
 		count_dict = {}
-		for ndx,symbol in enumerate( self.tokens[ 1:] ):
+		for ndx,symbol in enumerate( self._tokens[ 1:] ):
 			if symbol == target:
-				if STRESS != self.tokens[ndx]: 
-					if self.tokens[ ndx ] in VOWELS:
-						count_dict.setdefault( self.tokens[ ndx ],0 )
-						count_dict[self.tokens[ ndx ]] += 1
-				elif ndx > 0 and self.tokens[ ndx - 1 ] in VOWELS:
-					count_dict.setdefault( self.tokens[ ndx - 1 ],0 )
-					count_dict[self.tokens[ ndx - 1 ]] += 1
+				if STRESS != self._tokens[ndx]: 
+					if self._tokens[ ndx ] in VOWELS:
+						count_dict.setdefault( self._tokens[ ndx ],0 )
+						count_dict[self._tokens[ ndx ]] += 1
+				elif ndx > 0 and self._tokens[ ndx - 1 ] in VOWELS:
+					count_dict.setdefault( self._tokens[ ndx - 1 ],0 )
+					count_dict[self._tokens[ ndx - 1 ]] += 1
 		return count_dict
 
 ##########################################################################
@@ -425,14 +446,14 @@ class Symbols( BasePhonologist ):
 		target = InputManager(target).force_unicode()
 		count_dict = {}
 		ndx = 0
-		for i in range( len( self.tokens ) - 1):
-			if self.tokens[ndx] == target:
-				if STRESS != self.tokens[ndx+1]:
-					count_dict.setdefault( self.tokens[ ndx + 1 ],0 )
-					count_dict[self.tokens[ ndx + 1 ]] += 1
+		for i in range( len( self._tokens ) - 1):
+			if self._tokens[ndx] == target:
+				if STRESS != self._tokens[ndx+1]:
+					count_dict.setdefault( self._tokens[ ndx + 1 ],0 )
+					count_dict[self._tokens[ ndx + 1 ]] += 1
 				else:
-					count_dict.setdefault( self.tokens[ ndx + 2 ],0 )
-					count_dict[self.tokens[ ndx + 2 ]] += 1						
+					count_dict.setdefault( self._tokens[ ndx + 2 ],0 )
+					count_dict[self._tokens[ ndx + 2 ]] += 1						
 			ndx += 1
 		return count_dict	
 
@@ -444,15 +465,15 @@ class Symbols( BasePhonologist ):
 		target = InputManager(target).force_unicode()
 		count_dict = {}
 		ndx = 0
-		for i in range( len( self.tokens ) - 1):
-			if self.tokens[ndx] == target:
-				if STRESS != self.tokens[ndx+1]:
-					if self.tokens[ ndx + 1] in CONSONANTS:
-						count_dict.setdefault( self.tokens[ ndx + 1 ],0 )
-						count_dict[self.tokens[ ndx + 1 ]] += 1
-				elif self.tokens[ndx + 2] in CONSONANTS:
-					count_dict.setdefault( self.tokens[ ndx + 2 ],0 )
-					count_dict[self.tokens[ ndx + 2 ]] += 1						
+		for i in range( len( self._tokens ) - 1):
+			if self._tokens[ndx] == target:
+				if STRESS != self._tokens[ndx+1]:
+					if self._tokens[ ndx + 1] in CONSONANTS:
+						count_dict.setdefault( self._tokens[ ndx + 1 ],0 )
+						count_dict[self._tokens[ ndx + 1 ]] += 1
+				elif self._tokens[ndx + 2] in CONSONANTS:
+					count_dict.setdefault( self._tokens[ ndx + 2 ],0 )
+					count_dict[self._tokens[ ndx + 2 ]] += 1						
 			ndx += 1
 		return count_dict	
 
@@ -460,29 +481,29 @@ class Symbols( BasePhonologist ):
 		target = InputManager(target).force_unicode()
 		count_dict = {}
 		ndx = 0
-		for i in range( len( self.tokens ) - 1):
-			if self.tokens[ndx] == target:
-				if STRESS != self.tokens[ndx+1]:
-					if self.tokens[ ndx + 1] in VOWELS_GLIDES:
-						count_dict.setdefault( self.tokens[ ndx + 1 ], 0 )
-						count_dict[self.tokens[ ndx + 1 ]] += 1
-				elif self.tokens[ ndx + 2] in VOWELS:
-					count_dict.setdefault( self.tokens[ ndx + 2 ], 0 )
-					count_dict[self.tokens[ ndx + 2 ]] += 1
+		for i in range( len( self._tokens ) - 1):
+			if self._tokens[ndx] == target:
+				if STRESS != self._tokens[ndx+1]:
+					if self._tokens[ ndx + 1] in VOWELS_GLIDES:
+						count_dict.setdefault( self._tokens[ ndx + 1 ], 0 )
+						count_dict[self._tokens[ ndx + 1 ]] += 1
+				elif self._tokens[ ndx + 2] in VOWELS:
+					count_dict.setdefault( self._tokens[ ndx + 2 ], 0 )
+					count_dict[self._tokens[ ndx + 2 ]] += 1
 			ndx += 1
 		return count_dict	
 
 	def digram( self, target ):
 		target = InputManager(target).force_unicode()
 		count_dict = { target : 0 }
-		for ndx in range(len(self.tokens)-1):
-			if self.tokens[ndx] == target[ 0 ]:
-				sym1 = self.tokens[ndx]
-				if self.tokens[ ndx + 1 ] != STRESS:
-					if self.tokens[ ndx + 1 ] == target[ 1 ]:
+		for ndx in range(len(self._tokens)-1):
+			if self._tokens[ndx] == target[ 0 ]:
+				sym1 = self._tokens[ndx]
+				if self._tokens[ ndx + 1 ] != STRESS:
+					if self._tokens[ ndx + 1 ] == target[ 1 ]:
 						count_dict[ target ] += 1
 				else:
-					if self.tokens[ ndx + 2 ] == traget[ 1 ]:
+					if self._tokens[ ndx + 2 ] == traget[ 1 ]:
 						count_dict[ target ] += 1
 		return count_dict
 
@@ -538,7 +559,7 @@ class Features( Symbols ):
 		if data_arg:
 			data = list( data_args )
 		else:
-			data = self.tokens
+			data = self._tokens
 		for feature in plus:
 			n_data = find_pos( feature, data ) #from fmatrix_utils
 			data = n_data
@@ -558,7 +579,7 @@ class Features( Symbols ):
 		if data_arg:
 			data = list( data_arg )
 		else:
-			data = self.tokens
+			data = self._tokens
 		for feature in minus:
 			n_data = find_neg( feature, data ) #from fmatrix_utils
 			data = n_data
@@ -574,7 +595,7 @@ class Features( Symbols ):
 		return - dict { symbol : frequency }
 		"""
 		symbol_dict = {}
-		for symbol in self.tokens:
+		for symbol in self._tokens:
 			if symbol in group:
 				symbol_dict.setdefault( symbol, 0 )
 				symbol_dict[ symbol ] += 1
@@ -654,7 +675,8 @@ class InputManager( object ):
 		elif type(self.input) == unicode:
 			return self.input.split(".")
 		elif type(self.input) == str:
-			uinput = self.input.decode('utf-8')
+			syllables = re.sub('\s','.',self.input)
+			uinput = syllables.decode('utf-8')
 			return uinput.split(".")
 		else:
 			raise TypeError, "You Suck"
