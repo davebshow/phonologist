@@ -13,9 +13,22 @@ class Phonologist(object):
 	"""
 	Base class with magic methods for all other classes.
 	"""
+	
+	@classmethod
+	def loadfile( cls, ipa_textfile ):
+		"""
+		Load a textfile with IPA symbols
+		"""
+		f = codecs.open( ipa_textfile, "r", encoding='utf-8' )
+		lines = f.readlines()
+		words = []
+		for line in lines:
+			words += line.split()
+		f.close()
+		return cls(words)
+
 	def __init__(self, tokens):
 		self._tokens = tokens
-		self.phrases = Phrases(InputManager(tokens).words())
 		self.words = Words(InputManager(tokens).words())
 		self.syllables = Syllables(InputManager(tokens).syllables())
 		self.symbols = Symbols(InputManager(tokens).symbols())
@@ -32,65 +45,86 @@ class Phonologist(object):
 
 	tokens = property(_get_tokens, _set_tokens)
 
+	def syllabify(self):
+		"""
+		Break a "Words" format object into syllables.
+		--------------------
+		return - list [ syll, ..., syll ]
+		"""
+		syllables = []
+		for token in self._tokens:
+			syllables.append(token.split("."))
+		return sum(syllables,[]) # hehe good trick
+
 	def __len__(self):
 		return len(self._tokens)
 
-	def __iter__( self ):
-		return TokenIterator( self._tokens )
+	def __iter__(self):
+		return TokenIterator(self._tokens)
 
-	def __getitem__( self, ndx ):
-		assert ndx >= 0 and ndx < len( self._tokens ), "index out of range"
+	def __getitem__(self, ndx):
+		assert ndx >= 0 and ndx < len(self._tokens), "index out of range"
 		return self._tokens[ ndx ]
 
-	def __setitem__( self, ndx, token ):
-		assert ndx >= 0 and ndx < len( self._tokens ), "index out of range"
+	def __setitem__(self, ndx, token):
+		assert ndx >= 0 and ndx < len(self._tokens), "index out of range"
 		self._tokens[ ndx ] = token
 
 ######################################################
-class Token( Phonologist ):
+class Token(Phonologist):
 
-	def __init__( self, token ):
+	def __init__(self, token):
 
 		self._tokens = InputManager(token).token()
+		self.syllables = InputManager(token).syllables()
+		self.features = InputManager(token).symbols()
 
-	def stressed( self ):
+	def stressed(self):
 		if STRESS in self._tokens:
 			return True
 		else:
 			return False
 
-	def pretonic_postonic( self, target ):
+	def pretonic_postonic(self, target):
 		"""
 		find values without changing token format
 		"""
 		pass
 
-	def preceding_symbol( self, target ):
+	def preceding_symbol(self, target):
 		"""
 		find values without changing token format
 		"""
 		pass
 
-	def posterior_symbol( self, target ):
+	def posterior_symbol(self, target):
 		pass
 
-	def syllabify( self ):
+	def syllabify(self):
 		return self._tokens.split(".")
 
-	def token_to_symbols( self ):
+	def token_to_symbols(self):
 		return Symbols(self)
+
 	def syllable_position_in_token(self):
 		pass
 
 ##########################################################
-class BaseTokens( Phonologist ):
+class BaseTokens(Phonologist):
 	"""
 	This is a base class for Words and Syllables (the "tokens" classes). 
 	Words objects should be divided at word boundries.
 	Syllables objects should be divided at syllable boundries.
 	"""
 	def __init__(self, tokens):
-		self._tokens = tokens
+		self._tokens = InputManager(tokens).words()
+		self.syllables = Syllables(InputManager(tokens).syllables())
+		self.symbols = Symbols(InputManager(tokens).symbols())
+
+	def _get_tokens(self):
+		return self._tokens
+		
+	tokens = property(_get_tokens)		
 
 	def count_token(self, target):
 		"""
@@ -100,7 +134,7 @@ class BaseTokens( Phonologist ):
 		return - dict { token : frequency }
 		"""
 		target = InputManager( target ).force_unicode()
-		token_dict = { target: 0 }
+		token_dict = {target: 0}
 		for token in self._tokens:
 			if token == target:
 				token_dict[ target ] += 1
@@ -159,7 +193,7 @@ class BaseTokens( Phonologist ):
 		"""
 		stress_dict = {}
 		for token in self._tokens:
-			if STRESS not in token:
+			if STRESS not in token and token not in [COMMA,PERIOD]:
 				stress_dict.setdefault( token, 0 )
 				stress_dict[ token ] += 1
 		return stress_dict
@@ -211,17 +245,6 @@ class BaseTokens( Phonologist ):
 				token_dict[ token ] += tokens[token]
 		return token_dict
 
-	def syllabify( self ):
-		"""
-		Break a "Words" format object into syllables.
-		--------------------
-		return - list [ syll, ..., syll ]
-		"""
-		syllables = []
-		for token in self._tokens:
-			syllables.append(token.split("."))
-		return sum(syllables,[]) # hehe good trick
-
 	def stressed( self, token ):
 		if STRESS in token:
 			return True
@@ -233,19 +256,10 @@ class Phrases( BaseTokens ):
 	"""
 	May create Phrases class. 
 	"""
-	@classmethod
-	def loadfile( Phrases, ipa_textfile ):
-		"""
-		Try to read the input textfile to proper format for phrases.
-		"""
-		f = codecs.open( ipa_textfile, "r", encoding='utf-8' )
-		lines = f.readlines()
-		words = []
-		for line in lines:
-			words += line.split()
-		f.close()
-		return Phrases(words)
-
+	def _get_tokens(self):
+		return self._tokens
+		
+	tokens = property(_get_tokens)
 
 	def unstressed_syllable_sequence(self):
 		"""
@@ -273,20 +287,12 @@ class Words( BaseTokens ):
 	Class for working with tokens divided at word boundries
 	"""
 
-	@classmethod
-	def loadfile( cls, ipa_textfile ):
-		"""
-		Try to read the input textfile to proper format for words.
-		"""
-		f = codecs.open( ipa_textfile, "r", encoding='utf-8' )
-		lines = f.readlines()
-		words = []
-		for line in lines:
-			words += line.split()
-		f.close()
-		return cls(words)
-	
-	def pretonic_postonic_words( self, target ):
+	def _get_tokens(self):
+		return self._tokens
+		
+	tokens = property(_get_tokens)
+
+	def pretonic_postonic( self, target ):
 		"""
 		Currently just counts the occurence of a symbol in a pretonic
 		or postonic position taking into account word boundries.
@@ -298,12 +304,12 @@ class Words( BaseTokens ):
 		count_dict = { "pretonic":0, "postonic":0 }
 		for token in self._tokens:
 			if target in token:
-				token_dict = self._pretonic_postonic( target, token )
+				token_dict = self._pretonic_postonic_help( target, token )
 				count_dict[ "pretonic" ] += token_dict[ "pretonic" ]
 				count_dict[ "postonic" ] += token_dict[ "postonic" ]	
 		return count_dict
 
-	def _pretonic_postonic( self, target, token ):
+	def _pretonic_postonic_help( self, target, token ):
 		"""
 		Counts pretonic postonic per token.
 		"""
@@ -325,25 +331,15 @@ class Syllables( BaseTokens ):
 	"""
 	Class for working with tokens divided at syllable boundries.
 	"""
-
-	@classmethod
-	def loadfile( Syllables, ipa_textfile ):
-		"""
-		Try to read textfile input to proper format for syllables.
-		"""
-		f = codecs.open( ipa_textfile, "r", encoding='utf-8')
-		lines = f.readlines()
-		words = []
-		for line in lines:
-			words += line.split()
-		syllables = []
-		for word in words:
-			syllables += word.split(".")
-		return Syllables(syllables)
+	def _get_tokens(self):
+		return self._tokens
+		
+	tokens = property(_get_tokens)
 
 	def __init__(self, tokens):
-		self._tokens = tokens
-
+		self._tokens = InputManager(tokens).syllables()
+		self.symbols = Symbols(InputManager(tokens).symbols())
+		
 	def pretonic_postonic_syllables(self):
 		pass
 
@@ -359,22 +355,16 @@ class Symbols( Phonologist ):
 	### CLASS ATTRIBUTE ###
 	# This is a list of groups that can be passed through various methods.
 	# Need to change the format for clean passing... 
-	feature_groups = FEATURE_GROUPS
-
-	@classmethod
-	def loadfile( Symbols, ipa_textfile ):
-		"""
-		Try to read textfile to proper format for Symbols.
-		"""
-		f = codecs.open( ipa_textfile, "r", encoding='utf-8')
-		lines = f.readlines()
-		text = ''.join(lines)
-		symbols = re.sub( '[\s.]', '', text )
-		return Symbols( symbols )
+	groups = FEATURE_GROUPS
+	features_dict = DISTINCTIVE_FEATURES
+	def _get_tokens(self):
+		return self._tokens
 		
+	tokens = property(_get_tokens)
+	
 	def __init__(self, tokens):
-		self._tokens = tokens
-
+		self._tokens = InputManager(tokens).symbols()
+		
 	def count_symbol( self, target ):
 		"""
 		Count the frequency of a particular symbol.
@@ -407,33 +397,20 @@ class Symbols( Phonologist ):
 # THESE METHODS WILL PROBABLY BE REPLACED BY AN OPTIONAL VARIABLE IN preceding_symbol
 # OR A METHOD proceeding_feature_groups
 #####################################################################################
-	def preceding_consonant( self, target ):
+	def preceding_group(self, target, group):
 		target = InputManager(target).force_unicode()
 		count_dict = {}
 		for ndx,symbol in enumerate( self._tokens[ 1:] ):
 			if symbol == target:
 				if STRESS != self._tokens[ndx]: 
-					if self._tokens[ ndx ] in CONSONANTS:
+					if self._tokens[ ndx ] in group:
 						count_dict.setdefault( self._tokens[ ndx ],0 )
 						count_dict[self._tokens[ ndx ]] += 1
-				elif ndx > 0 and self._tokens[ ndx - 1 ] in CONSONANTS:
+				elif ndx > 0 and self._tokens[ ndx - 1 ] in group:
 					count_dict.setdefault( self._tokens[ ndx - 1 ],0 )
 					count_dict[self._tokens[ ndx - 1 ]] += 1
 		return count_dict
 
-	def preceding_vowel( self, target ):
-		target = InputManager(target).force_unicode()
-		count_dict = {}
-		for ndx,symbol in enumerate( self._tokens[ 1:] ):
-			if symbol == target:
-				if STRESS != self._tokens[ndx]: 
-					if self._tokens[ ndx ] in VOWELS:
-						count_dict.setdefault( self._tokens[ ndx ],0 )
-						count_dict[self._tokens[ ndx ]] += 1
-				elif ndx > 0 and self._tokens[ ndx - 1 ] in VOWELS:
-					count_dict.setdefault( self._tokens[ ndx - 1 ],0 )
-					count_dict[self._tokens[ ndx - 1 ]] += 1
-		return count_dict
 
 ##########################################################################
 	def posterior_symbol( self, target ):
@@ -461,35 +438,19 @@ class Symbols( Phonologist ):
 # THESE METHODS WILL PROBABLY BE REPLACED BY AN OPTIONAL VARIABLE IN posterior_symbol
 # OR A METHOD posterior_feature_groups
 #####################################################################################
-	def posterior_consonant( self, target ):
+	def posterior_group( self, target, group ):
 		target = InputManager(target).force_unicode()
 		count_dict = {}
 		ndx = 0
 		for i in range( len( self._tokens ) - 1):
 			if self._tokens[ndx] == target:
 				if STRESS != self._tokens[ndx+1]:
-					if self._tokens[ ndx + 1] in CONSONANTS:
+					if self._tokens[ ndx + 1] in group:
 						count_dict.setdefault( self._tokens[ ndx + 1 ],0 )
 						count_dict[self._tokens[ ndx + 1 ]] += 1
-				elif self._tokens[ndx + 2] in CONSONANTS:
+				elif self._tokens[ndx + 2] in group:
 					count_dict.setdefault( self._tokens[ ndx + 2 ],0 )
 					count_dict[self._tokens[ ndx + 2 ]] += 1						
-			ndx += 1
-		return count_dict	
-
-	def posterior_vowel( self, target ):
-		target = InputManager(target).force_unicode()
-		count_dict = {}
-		ndx = 0
-		for i in range( len( self._tokens ) - 1):
-			if self._tokens[ndx] == target:
-				if STRESS != self._tokens[ndx+1]:
-					if self._tokens[ ndx + 1] in VOWELS_GLIDES:
-						count_dict.setdefault( self._tokens[ ndx + 1 ], 0 )
-						count_dict[self._tokens[ ndx + 1 ]] += 1
-				elif self._tokens[ ndx + 2] in VOWELS:
-					count_dict.setdefault( self._tokens[ ndx + 2 ], 0 )
-					count_dict[self._tokens[ ndx + 2 ]] += 1
 			ndx += 1
 		return count_dict	
 
@@ -507,27 +468,6 @@ class Symbols( Phonologist ):
 						count_dict[ target ] += 1
 		return count_dict
 
-##################################################################
-class Features( Symbols ):
-	"""
-	Class for working with distinctive features at the symbol level.
-	May be merged with Symbols class.
-	"""
-	### Class attributes for reference ###
-	# possible features for use with features method
-	features_dictionary = DISTINCTIVE_FEATURES
-
-	@classmethod
-	def loadfile( Features, ipa_textfile ):
-		"""
-		Try to read textfile to proper format for Symbols.
-		"""
-		f = codecs.open( ipa_textfile, "r", encoding='utf-8')
-		lines = f.readlines()
-		text = ''.join(lines)
-		symbols = re.sub( '[ \s. ]', '', text )
-		return Features( symbols )
-		
 	def features( self, plus=None, minus=None ):
 		"""
 		Find all symbols with a series of feature characteristics as 
@@ -608,7 +548,7 @@ class Features( Symbols ):
 		"""
 		pass 
 
-class Vowels( Features ):
+class Vowels( Symbols ):
 	"""
 	Probably be part of features. Vowel featurmatrix etc.
 	"""
@@ -638,7 +578,7 @@ class InputManager( object ):
 	the right format so I made a class to deal with it.
 	"""
 
-	def __init__(self, input):
+	def __init__(self, input, tokens=True):
 		self.input = input
 
 	def force_unicode(self):
@@ -664,22 +604,24 @@ class InputManager( object ):
 			uinput = self.input.decode('utf-8')
 			return uinput.split()
 		else:
-			raise TypeError, "You Suck"
+			raise TypeError
 
 	def syllables( self ):
-		if type(self.input) == Words or type(self.input) == Phrases \
-				or type(self.input) == Token: 
+		if type(self.input) == Words or type(self.input) == Phonologist \
+				or type(self.input) == Token or type(self.input) == Phrases: 
 			return self.input.syllabify()
 		elif type(self.input) == list:
-			return self.input
+			syllables = []
+			for token in self.input:
+				syllables.append(token.split("."))
+			return sum(syllables,[])
 		elif type(self.input) == unicode:
 			return self.input.split(".")
 		elif type(self.input) == str:
-			syllables = re.sub('\s','.',self.input)
-			uinput = syllables.decode('utf-8')
+			uinput = self.input.decode('utf-8')
 			return uinput.split(".")
 		else:
-			raise TypeError, "You Suck"
+			raise TypeError
 
 	def symbols( self ):
 		if type(self.input) == Words or type(self.input) == Phrases \
@@ -697,7 +639,9 @@ class InputManager( object ):
 		elif type(self.input) == list:
 			return ''.join(self.input)
 		else:
-			raise TypeError, "You Suck"
+			raise TypeError
+
+
 
 
 	

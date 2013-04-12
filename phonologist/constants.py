@@ -38,9 +38,9 @@ DISTINCTIVE_FEATURES = {"cons":"Consonantal","dist":"Distributed","syll":"Syllab
                         "rnd":"Round","high":"high","cor":"Coronal",
                         "phar":"Pharengeal","dor":"dorsal","SG":"Spread Glottis"}
 
-FEATURE_GROUPS = [CONSONANTS, CORONAL_OBSTRUENTS, PALATAL_OBSTRUENTS, NONCORONAL_OBSTRUENTS, 
-                LARYNGEALS, AFFRICATES, NASALS_LIQUIDS, NASALS, LIQUIDS, VOWELS_GLIDES, 
-                GLIDES, VOWELS ]
+FEATURE_GROUPS = ["CONSONANTS", "CORONAL_OBSTRUENTS", "PALATAL_OBSTRUENTS", "NONCORONAL_OBSTRUENTS", 
+                "LARYNGEALS", "AFFRICATES", "NASALS_LIQUIDS", "NASALS", "LIQUIDS", "VOWELS_GLIDES", 
+                "GLIDES", "VOWELS" ]
 
 FMATRIX = {
 "cons": 
